@@ -1,0 +1,25 @@
+.confirmedbooking {
+	background-color: #5DADE2;
+}
+
+.bookingbooking {
+	background-color: #82E0AA;
+}
+
+.cancelledbooking {
+	background-color: #EF9A9A;
+}
+
+.pastbooking {
+	background-color: #E0E0E0; 
+}
+
+.currentbooking {
+	background-color: #FFEB3B;
+	font-weight: bold;
+}
+
+.standbybooking {
+	background-color: #FFA000;
+	font-style: italic;
+}
