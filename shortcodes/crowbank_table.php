@@ -293,7 +293,8 @@ function crowbank_employee_list($attr) {
 			$class = RANKCLASS[$employee->rank];
 		}
 		$r .= '<tr class="' . $class . '">' . "<td>$employee->no</td>" . "<td>$employee->forename</td>" . "<td>$employee->surname</td>";
-		$r .= "<td>$employee->nickname</td>" . "<td>" . $employee->start_date->format('d/m/Y') . "</td>" . "<td>$employee->rank</td>";
+		$r .= '<td><a href="' . home_url('employee/?emp=' . $employee->nickname) . '">' . $employee->nickname . '</a></td>';
+		$r .= "<td>" . $employee->start_date->format('d/m/Y') . "</td>" . "<td>$employee->rank</td>";
 		$r .= "<td>$employee->email</td><td><a href=" . '"http://www.facebook.com/' . $employee->facebook . '">' . $employee->facebook . "</a></td><td>$employee->mobile</td></tr>";
 	}
 	$r .= '</tbody></table>';
