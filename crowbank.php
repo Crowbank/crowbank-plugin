@@ -73,11 +73,13 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_table.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_item.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_confirmation.php';
-
+	require_once CROWBANK_ABSPATH . 'shortcodes/calendar_display.php';
+	
 	add_shortcode('crowbank_table', 'crowbank_table');
 	add_shortcode('crowbank_item', 'crowbank_item');
 	add_shortcode('crowbank_toggle', 'crowbank_toggle');
 	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
+	add_shortcode('crowbank_availability', 'display_calendar');
 }
 
 add_action('init', 'crowbank_shortcodes_init');
