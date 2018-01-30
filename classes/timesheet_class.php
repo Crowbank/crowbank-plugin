@@ -81,6 +81,7 @@ class Timesheets {
 	public $modified_times = array();
 	public $by_employee = array();
 	public $isLoaded = FALSE;
+	public $weeks = array();
 	
 	public function display_employee($employee, $weekstart, $weeks, $post, $overrides) {
 		global $petadmin;
@@ -123,6 +124,7 @@ class Timesheets {
 			if (!isset($this->weekly[$key])) {
 				continue;
 			}
+			$locked = $this->weeks[$key];
 			$shifts = $this->weekly[$key];
 			if (!isset($shifts[$nickname])) {
 				continue;
@@ -134,7 +136,12 @@ class Timesheets {
 			$final->add($d6);
 
 			$r .= '<tr style="text-align: center; border-left: solid 1px; border-right: solid 1px; border-bottom: solid 1px; ">';
-			$r .= '<td><a href="../weekly-rota/?weekstart=' . $date->format('Y-m-d') . '">' . $date->format('d/m') . ' - ' . $final->format('d/m') . '</a></td>';
+			$r .= '<td>';
+			if ($locked) {
+				$src = CROWBANK_ABSPATH . 'css/lock_blue.png';
+				$r .= '<img src="' . $src . '">';
+			}
+			$r .= '<a href="../weekly-rota/?weekstart=' . $date->format('Y-m-d') . '">' . $date->format('d/m') . ' - ' . $final->format('d/m') . '</a></td>';
 			for ($i=0; $i<7; $i++) {
 				$am = $shift->days[$i]['am'];
 				$pm = $shift->days[$i]['pm'];
@@ -146,8 +153,8 @@ class Timesheets {
 
 				$r .= '<td style="border-left: solid 1px;" class="' . $am_class . '">';
 				if ($am <> 'X' or $pm <> 'X') {
-					if ($am == 'X') {
-						$r .= 'X';
+					if ($am == 'X' or $locked) {
+						$r .= $am;
 					} else {
 						$name = 's' . $date->format('Ymd') . '_' . $i . '_am';
 						if ($post) {
@@ -161,8 +168,8 @@ class Timesheets {
 						$r .= '<label class="tgl-btn" data-tg-off="U" data-tg-on="" for="' . $name . '"></label>';
 					}
 					$r .= '</td><td class="' . $pm_class . '">';
-					if ($pm == 'X') {
-						$r .= 'X';
+					if ($pm == 'X' or $locked) {
+						$r .= $pm;
 					} else {
 						$name = 's' . $date->format('Ymd') . '_' . $i . '_pm';
 						if ($post) {
@@ -344,6 +351,7 @@ class Timesheets {
 			$this->weekly = array();
 			$this->by_employee = array();
 			$this->modified_times = array();
+			$this->weeks = array();
 			$this->count = 0;
 		}
 		
@@ -368,6 +376,12 @@ class Timesheets {
 				$this->modified_times[$shift_start] = $shift->published_time;
 			}
 			$this->by_employee[$shift->employee->nickname][$shift_start] = $shift;
+			if (!array_key_exists($this->weeks[$shift_start])) {
+				$this->weeks[$shift_start] = false;
+			}
+			if ($shift->days[0]['am'] == 'L') {
+				$this->weeks[$shift_start] = true;	
+			}
 		}
 		
 		$this->isLoaded = TRUE;
