@@ -7,9 +7,9 @@ class Availability {
 	
 	private static $availability = NULL;
 	
-	public static function getAvailability($database) {
+	public static function getAvailability() {
 		if (!self::$availability) {
-			self::$availability = new Availability($database);
+			self::$availability = new Availability();
 		}
 		return self::$availability;
 	}
@@ -48,6 +48,17 @@ class Availability {
 			}
 			$this->runs[$species][$rt_desc][$date->getTimestamp()] = $availability;
 		}
+	}
+	
+	public function availability($date, $species, $runtype) {
+	    $a = 0;
+	    $this->load();
+	    
+	    $ts = $date->getTimestamp();
+	    if (array_key_exists($ts, $this->runs[$species][$runtype]))
+	        $a = $this->runs[$species][$runtype][$ts];
+	    
+	    return $a;
 	}
 	
 	public function check($start_date, $end_date, $end_time, $dogs, $cats) {
