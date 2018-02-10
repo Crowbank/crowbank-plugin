@@ -376,7 +376,7 @@ class Timesheets {
 				$this->modified_times[$shift_start] = $shift->published_time;
 			}
 			$this->by_employee[$shift->employee->nickname][$shift_start] = $shift;
-			if (!array_key_exists($this->weeks[$shift_start])) {
+			if (!isset($this->weeks[$shift_start])) {
 				$this->weeks[$shift_start] = false;
 			}
 			if ($shift->days[0]['am'] == 'L') {

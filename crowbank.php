@@ -73,11 +73,13 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_table.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_item.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_confirmation.php';
-
+	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_calendar.php';
+	
 	add_shortcode('crowbank_table', 'crowbank_table');
 	add_shortcode('crowbank_item', 'crowbank_item');
 	add_shortcode('crowbank_toggle', 'crowbank_toggle');
 	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
+	add_shortcode('crowbank_calendar', 'crowbank_calendar');
 }
 
 add_action('init', 'crowbank_shortcodes_init');
@@ -312,6 +314,9 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = array()
 	 * @param array $args A compacted array of wp_mail() arguments, including the "to" email,
 	 *                    subject, message, headers, and attachments values.
 	 */
+	$msg = 'About to send email to ' . $to . ', subject: ' . $subject;
+	crowbank_log($msg);
+	
 	$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
 	
 	if ( isset( $atts['to'] ) ) {
@@ -654,7 +659,9 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = array()
 					
 					// Send!
 					try {
-						return $phpmailer->send();
+						$ret = $phpmailer->send();
+						crowbank_log('send successful');
+						return $ret;
 					} catch ( phpmailerException $e ) {
 						
 						$mail_error_data = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
@@ -669,6 +676,8 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = array()
 						 *                        containing the mail recipient, subject, message, headers, and attachments.
 						 */
 						do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_error_data ) );
+						
+						crowbank_log($e->getMessage(), 3);
 						
 						return false;
 					}
