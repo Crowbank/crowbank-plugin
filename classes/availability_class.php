@@ -3,23 +3,13 @@ class Availability {
 	private $runs = array();
 	private $day;
 	public $isLoaded;
-	
-	
-	private static $availability = NULL;
-	
-	public static function getAvailability() {
-		if (!self::$availability) {
-			self::$availability = new Availability();
-		}
-		return self::$availability;
-	}
-	
-	protected function __construct() {
+
+	public function __construct() {
 		$this->isLoaded = FALSE;
 		$this->day = new DateInterval('P1D');
 	}
 	
-	public function load($force) {
+	public function load($force = false) {
 		global $petadmin_db;
 		if ($this->isLoaded and !$force) {
 			return;
@@ -55,7 +45,7 @@ class Availability {
 	    $this->load();
 	    
 	    $ts = $date->getTimestamp();
-	    if (array_key_exists($ts, $this->runs[$species][$runtype]))
+	    if (isset($this->runs[$species][$runtype][$ts]))
 	        $a = $this->runs[$species][$runtype][$ts];
 	    
 	    return $a;

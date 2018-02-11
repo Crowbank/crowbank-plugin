@@ -21,6 +21,7 @@ class Calendar {
 	public $currentMonth = 0;
 	/* Optional function which takes a date and returns a string representing the class for the cell for that date */
 	public $classFunc = null;
+	public $title = '';
 	
 	/**
 	 * print out the calendar
@@ -33,9 +34,7 @@ class Calendar {
 		$this->daysInMonth = $this->_daysInMonth();
 		
 		$content='<div id="calendar">'.
-				'<div class="box">'.
-				$this->_createNavi().
-				'</div>'.
+				'<div class="calendar-title">'. $this->title.'</div>'.
 				'<div class="box-content">'.
 				'<ul class="label">'.$this->_createLabels().'</ul>';
 		$content.='<div class="clear"></div>';
@@ -64,7 +63,8 @@ class Calendar {
 	 * create the li element for ul
 	 */
 	
-	private function _showDay($cellNumber){	
+	private function _showDay($cellNumber) {
+		$cF = $this->classFunc;
 		if ($this->currentDay == 0) {
 			$firstDayOfTheWeek = date('N', strtotime($this->currentYear . '-' . $this->currentMonth . '-01'));
 			if(intval($cellNumber) == intval($firstDayOfTheWeek)) {
@@ -72,8 +72,11 @@ class Calendar {
 			}
 		}
 		
+		$date = null;
 		if ( ($this->currentDay != 0) && ($this->currentDay <= $this->daysInMonth)) {
-			$this->currentDate = date('Y-m-d', strtotime($this->currentYear . '-' . $this->currentMonth . '-' . ($this->currentDay)));
+			$date = strtotime($this->currentYear . '-' . $this->currentMonth . '-' . ($this->currentDay));
+			$this->currentDate = date('Y-m-d', $date);
+			$date = new DateTime($this->currentDate);
 			$cellContent = $this->currentDay;
 			$this->currentDay++;
 		} else {
@@ -81,8 +84,12 @@ class Calendar {
 			$cellContent = null;
 		}
 		
+		$class = '';
+		if ($cF != null and $date != null)
+			$class = ' ' . $cF($date) . ' ';
+		
 		return '<li id="li-' . $this->currentDate . '" class="' . ($cellNumber % 7 == 1 ? ' start ':($cellNumber % 7 == 0 ? ' end ':' ')) .
-		($cellContent == null ? 'mask' : '') . ($this->classFunc == null ? '' : ' ' . $this->classFunc($this->currentDate) . ' ') . '">' . $cellContent . '</li>';
+		($cellContent == null ? 'mask' : '') . $class . '">' . $cellContent . '</li>';
 	}
 	
 	/**
@@ -117,6 +124,8 @@ class Calendar {
 	 * calculate number of weeks in a particular month
 	 */
 	private function _weeksInMonth(){
+		$year = $this->currentYear;
+		$month = $this->currentMonth;
 		
 		// find number of days in this month
 		$daysInMonths = $this->_daysInMonth($this->currentMonth, $this->currentYear);

@@ -1,0 +1,151 @@
+/*******************************Calendar Top Navigation*********************************/
+
+/*
+:root {
+	--cell-size: 80px;
+	--header-size: 40px;
+	--calendar-width: 602px;
+	--font-size: 18px;
+	--label-size: 15px;
+	--header-width: 582px;
+	--day-font-size: 25px;
+}
+*/
+
+:root {
+	--cell-size: 30px;
+	--header-size: 20px;
+	--calendar-width: 256px;
+	--font-size: 16px;
+	--label-size: 11px;
+	--header-width: 221px;
+	--day-font-size: 14px;
+}
+
+div#calendar{
+  margin:0px auto;
+  padding:0px;
+  width: var(--calendar-width);
+  font-family:Helvetica, "Times New Roman", Times, serif;
+}
+ 
+div#calendar div.box{
+    position:relative;
+    top:0px;
+    left:0px;
+    width:100%;
+    height: var(--header-size);
+    background-color:  #787878 ;      
+}
+ 
+div#calendar div.header{
+    line-height: var(--header-size);  
+    vertical-align:middle;
+    position:absolute;
+    left: var(--label-size);
+    top:0px;
+    width: var(--header-width);
+    height: var(--header-size);   
+    text-align:center;
+}
+
+div#calendar .calendar-title{
+    line-height: var(--header-size);
+    vertical-align:middle;
+    height: var(--header-size);
+    text-align:center;
+    font-size: var(--font-size);
+}
+
+div#calendar div.header a.prev,div#calendar div.header a.next{ 
+    position:absolute;
+    top:0px;   
+    height: var(--font-size);
+    display:block;
+    cursor:pointer;
+    text-decoration:none;
+    color:#FFF;
+}
+
+div#calendar div.header span.title{
+    color:#FFF;
+    font-size: var(--font-size);
+}
+
+/*******************************Calendar Content Cells*********************************/
+div#calendar div.box-content{
+    border:1px solid #787878 ;
+    border-top:none;
+}
+ 
+ 
+ 
+div#calendar ul.label{
+    float:left;
+    margin: 0px;
+    padding: 0px;
+    margin-top:5px;
+    margin-left: 5px;
+}
+ 
+div#calendar ul.label li{
+    margin:0px;
+    padding:0px;
+    margin-right:5px;  
+    float:left;
+    list-style-type:none;
+    width: var(--cell-size);
+    height: var(--header-size);
+    line-height:40px;
+    vertical-align:middle;
+    text-align:center;
+    color:#000;
+    font-size: var(--label-size);
+/*    background-color: transparent; */
+}
+ 
+ 
+div#calendar ul.dates{
+    float:left;
+    margin: 0px;
+    padding: 0px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+ 
+/** overall width = width+padding-right**/
+div#calendar ul.dates li{
+    margin:0px;
+    padding:0px;
+    margin-right:5px;
+    margin-top: 5px;
+    line-height: var(--cell-size);
+    vertical-align:middle;
+    float:left;
+    list-style-type:none;
+    width:  var(--cell-size);
+    height: var(--cell-size);
+    font-size: var(--day-font-size);
+    background-color: #DDD;
+    color:#000;
+    text-align:center; 
+}
+ 
+:focus{
+    outline:none;
+}
+ 
+div.clear{
+    clear:both;
+}
+div#calendar ul.dates li.free {
+	background-color: green;
+}
+
+div#calendar ul.dates li.busy {
+	background-color: orange;
+}
+
+div#calendar ul.dates li.full {
+	background-color: red;
+}

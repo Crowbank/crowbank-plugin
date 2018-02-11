@@ -162,11 +162,13 @@ function crowbank_styles_and_scripts()
 {
 	// Register the style like this for a plugin:
 	wp_register_style( 'crowbank-style', plugins_url( '/css/crowbank2.css', __FILE__ ));
-//	wp_register_script( 'crowbank_alert', plugins_url( '/alert.js', __FILE__));
+	wp_register_style( 'calendar-style', plugins_url( '/css/calendar.css', __FILE__ ));
+	//	wp_register_script( 'crowbank_alert', plugins_url( '/alert.js', __FILE__));
 	
 	// For either a plugin or a theme, you can then enqueue the style:
-	wp_enqueue_style( 'crowbank-style' );
-//	wp_enqueue_script( 'crowbank_alert' );
+	wp_enqueue_style( 'crowbank-style', false, array(), null );
+	wp_enqueue_style( 'calendar-style', false, array(), null);
+	//	wp_enqueue_script( 'crowbank_alert' );
 }
 add_action( 'wp_enqueue_scripts', 'crowbank_styles_and_scripts' );
 
@@ -242,6 +244,24 @@ function get_weekstart() {
 	}
 
 	return $weekstart;
+}
+
+function get_month() {
+	if( isset($_REQUEST['month'])) {
+		$month = $_REQUEST['month'];
+	} else {
+		$month = date("m", time());
+	}
+	return $month;
+}
+
+function get_year() {
+	if(isset($_REQUEST['year']) ){
+		$year = $_REQUEST['year'];
+	} else {
+		$year = date("Y",time());
+	}
+	return $year;
 }
 
 function get_daily_date() {

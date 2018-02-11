@@ -12,10 +12,13 @@ function crowbank_toggle($attr = [], $content = null, $tag = '') {
 
 function crowbank_item($attr = [], $content = null, $tag = '') {
 	global $petadmin;
+	global $wp;
+	
+	$current_url = home_url(add_query_arg(array(), $wp->request));
 	
 	$attr = array_change_key_case((array)$attr, CASE_LOWER);
 
-	$attr = shortcode_atts([ 'type' => '', 'format' => 'D, j/m', 'page' => 'daily', 'text' => 'Link'], $attr, $tag);
+	$attr = shortcode_atts([ 'type' => '', 'format' => 'D, j/m', 'page' => $current_url, 'text' => 'Link'], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');
@@ -27,10 +30,14 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_prev_day($attr);
 	elseif ($type == 'next-day') 
 		return crowbank_next_day($attr);
-	elseif ($type == 'prev-week') 
+	elseif ($type == 'prev-week')
 		return crowbank_prev_week($attr);
 	elseif ($type == 'next-week')
 		return crowbank_next_week($attr);
+	elseif ($type == 'prev-month')
+		return crowbank_prev_month($attr);
+	elseif ($type == 'next-month')
+		return crowbank_next_month($attr);
 	elseif ($type == 'today')
 		return crowbank_today($attr);
 	elseif ($type == 'weekstart')
@@ -38,11 +45,12 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 	elseif ($type == 'date_link')
 		return crowbank_date_link($attr);
 	else
-		return crowbank_error("Unknwon crowbank_item type $type");
+		return crowbank_error("Unknown crowbank_item type $type");
 }
 
 function crowbank_prev_day($attr) {
 	global $petadmin;
+
 	$date = get_daily_date();
 
 	$day = new DateInterval('P1D');
@@ -52,11 +60,12 @@ function crowbank_prev_day($attr) {
 	$yesterday = clone($date);
 	$yesterday->sub($day);
 
-	return '<a href="' . home_url($page . '/?date=' . $yesterday->format('Y-m-d')) . '">Previous Day</a>';
+	return '<a href="' . $page . '?date=' . $yesterday->format('Y-m-d') . '">Previous Day</a>';
 }
 
 function crowbank_next_day($attr) {
 	global $petadmin;
+
 	$date = get_daily_date();
 
 	$page = $attr['page'];
@@ -66,32 +75,65 @@ function crowbank_next_day($attr) {
 	$tomorrow = clone($date);
 	$tomorrow->add($day);
 
-	return '<a href="' . home_url($page . '/?date=' . $tomorrow->format('Y-m-d')) . '">Next Day</a>';
+	return '<a href="' . $page . '?date=' . $tomorrow->format('Y-m-d') . '">Next Day</a>';
 }
 
 function crowbank_prev_week($attr) {
 	global $petadmin;
 	$weekstart = get_weekstart();
-
+	
 	$week = new DateInterval('P7D');
-
+	$page = $attr['page'];
+	
 	$prev = clone($weekstart);
 	$prev->sub($week);
-
-	return '<a href="' . home_url('weekly-rota/?weekstart=' . $prev->format('Y-m-d')) . '">Previous Week</a>';
+	
+	return '<a href="' . $page . '/?weekstart=' . $prev->format('Y-m-d') . '">Previous Week</a>';
 }
 
 function crowbank_next_week($attr) {
 	global $petadmin;
 	$weekstart = get_weekstart();
-
+	
 	$week = new DateInterval('P7D');
-
+	$page = $attr['page'];
+	
 	$next = clone($weekstart);
 	$next->add($week);
-
-	return '<a href="' . home_url('weekly-rota/?weekstart=' . $next->format('Y-m-d')) . '">Next Week</a>';
+	
+	return '<a href="' . $page . 'weekstart=' . $next->format('Y-m-d') . '">Next Week</a>';
 }
+
+function crowbank_prev_month($attr) {
+	global $petadmin;
+	$month = get_month();
+	$year = get_year();
+	$page = $attr['page'];
+	
+	$thisMonth = date("m", time());
+	$thisYear = date("Y", time());
+	
+	$prevMonth = $month == 1 ? 12 : intval($month) - 1;
+	$prevYear = $month == 1 ? intval($year) - 1 : $year;
+	
+	if ($prevYear < $thisYear or ($prevYear == $thisYear and $prevMonth < $thisMonth))
+		return 'Previous Month';
+	
+	return '<a href="' . $page . '/?month=' . $prevMonth . '&year=' . $prevYear . '">Previous Month</a>';
+}
+
+function crowbank_next_month($attr) {
+	global $petadmin;
+	$month = get_month();
+	$year = get_year();
+	$page = $attr['page'];
+	
+	$nextMonth = $month == 12 ? 1 : intval($month) + 1;
+	$nextYear = $month == 12 ? intval($year) + 1 : $year;
+	
+	return '<a href="' . $page . '/?month=' . $nextMonth . '&year=' . $nextYear . '">Next Month</a>';
+}
+
 
 function crowbank_today($attr) {
 	$date = get_daily_date();
@@ -105,7 +147,7 @@ function crowbank_date_link($attr) {
 	$page = $attr['page'];
 	$text = $attr['text'];
 
-	return '<a href="' . home_url($page . '/?date=' . $date->format('Y-m-d')) . '">' . $text . '</a>';
+	return '<a href="' . $page . '?date=' . $date->format('Y-m-d') . '">' . $text . '</a>';
 }
 
 function crowbank_weekstart($attr) {
