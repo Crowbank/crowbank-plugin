@@ -2,6 +2,9 @@
 require_once CROWBANK_ABSPATH . "classes/calendar_class.php";
 require_once CROWBANK_ABSPATH . "classes/availability_class.php";
 
+$months = array(1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
+		7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December');
+
 function crowbank_calendar($attr = [], $content = null, $tag = '') {
 	global $petadmin;
 	
