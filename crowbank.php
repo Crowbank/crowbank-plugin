@@ -323,8 +323,7 @@ if ( !function_exists( 'wp_mail' ) ) :
  * @param string|array $attachments Optional. Files to attach.
  * @return bool Whether the email contents were sent successfully.
  */
-
-function wp_mail_disabled( $to, $subject, $message, $headers = '', $attachments = array() ) {
+function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
 	// Compact the input, apply the filters, and extract them back out
 	
 	/**
@@ -703,5 +702,4 @@ function wp_mail_disabled( $to, $subject, $message, $headers = '', $attachments 
 						return false;
 					}
 }
-*/
 endif;
