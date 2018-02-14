@@ -149,3 +149,19 @@ div#calendar ul.dates li.busy {
 div#calendar ul.dates li.full {
 	background-color: red;
 }
+
+.free {
+	background-color: green;
+}
+
+.busy {
+	background-color: orange;
+}
+
+.full {
+	background-color: red;
+}
+
+form label.gform_body {
+		float: none;
+}

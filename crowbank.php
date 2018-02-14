@@ -80,9 +80,48 @@ function crowbank_shortcodes_init() {
 	add_shortcode('crowbank_toggle', 'crowbank_toggle');
 	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
 	add_shortcode('crowbank_calendar', 'crowbank_calendar');
+	add_shortcode('crowbank_calendar_legend', 'crowbank_calendar_legend');
 }
 
 add_action('init', 'crowbank_shortcodes_init');
+
+add_filter( 'gform_pre_render_17', 'populate_months' );
+add_filter( 'gform_pre_validation_17', 'populate_months' );
+add_filter( 'gform_pre_submission_filter_17', 'populate_months' );
+add_filter( 'gform_admin_pre_render_17', 'populate_months' );
+
+function populate_months( $form ) {
+	$months = array (1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
+			7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December');
+
+	foreach ( $form['fields'] as &$field ) {
+		
+		if ( $field->type != 'select' || strpos( $field->cssClass, 'populate_months' ) === false ) {
+			continue;
+		}
+
+		$choices = array();
+		
+		$month = intval(date("m", time()));
+		$year = intval(date("Y", time()));
+		
+		for ($i = 0; $i < 12; $i++) {
+			$text = $months[$month] . ' ' . $year;
+			$choices[] = array( 'text' => $text, 'value' => $i);
+			if ($month == 12) {
+				$month = 1;
+				$year += 1;
+			} else
+				$month += 1;
+		}
+		
+		// update 'Select a Post' to whatever you'd like the instructive option to be
+		$field->choices = $choices;
+		
+	}
+	
+	return $form;
+}
 
 function crowbank_check_new_user( $user_id, $args ) {
 	global $ultimatemember, $petadmin;
