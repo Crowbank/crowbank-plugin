@@ -216,6 +216,13 @@ function crowbank_styles_and_scripts()
 }
 add_action( 'wp_enqueue_scripts', 'crowbank_styles_and_scripts' );
 
+function remove_cssjs_ver( $src ) {
+	if( strpos( $src, '?ver=' ) )
+		$src = remove_query_arg( 'ver', $src );
+		return $src;
+}
+add_filter( 'style_loader_src', 'remove_cssjs_ver', 1000 );
+add_filter( 'script_loader_src', 'remove_cssjs_ver', 1000 );
 
 
 function get_url_by_slug($slug) {
