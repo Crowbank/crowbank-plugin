@@ -31,7 +31,7 @@ class Customer {
     $this->telno_home = trim($row['cust_telno_home']);
     $this->telno_mobile = trim($row['cust_telno_mobile']);
     $this->telno_mobile2 = trim($row['cust_telno_mobile2']);
-    $this->email = trim($row['cust_email']);
+    $this->email = strtolower(trim($row['cust_email']));
     $this->nodeposit = (int) $row['cust_nodeposit'];
   }
 

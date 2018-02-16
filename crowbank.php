@@ -74,6 +74,7 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_item.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_confirmation.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_calendar.php';
+	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_booking_action.php';
 	
 	add_shortcode('crowbank_table', 'crowbank_table');
 	add_shortcode('crowbank_item', 'crowbank_item');
@@ -81,6 +82,7 @@ function crowbank_shortcodes_init() {
 	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
 	add_shortcode('crowbank_calendar', 'crowbank_calendar');
 	add_shortcode('crowbank_calendar_legend', 'crowbank_calendar_legend');
+	add_shortcode('crowbank_booking_cancellation', 'crowbank_booking_cancellation');
 }
 
 add_action('init', 'crowbank_shortcodes_init');
@@ -131,7 +133,7 @@ function populate_months( $form ) {
 function crowbank_check_new_user( $user_id, $args ) {
 	global $ultimatemember, $petadmin;
 
-	$email = $ultimatemember->user->profile['user_email'];
+	$email = strtolower($ultimatemember->user->profile['user_email']);
 	crowbank_log( 'Checking for info on user with email ' . $email, 1);
 
 	if ($petadmin->employees->get_by_email($email)) {

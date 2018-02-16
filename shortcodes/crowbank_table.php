@@ -234,7 +234,7 @@ function crowbank_customer_bookings($attr) {
 		$r .=  "<h2>$title</h2>";
 		$r .= '<table class="table">';
 		$r .= '<thead><th>Booking #</th><th>Start Date</th><th>End Date</th><th>Pets</th>
-<th>Gross Amount</th><th>Paid Amount</th><th>Balance</th><th>Status</th><th></th></thead>';
+<th>Gross Amount</th><th>Paid Amount</th><th>Balance</th><th>Status</th><th></th><th></th></thead>';
 		$r .= '<tbody>';
 		foreach ($bookings as $booking) {
 			$status = $booking->status;
@@ -267,6 +267,13 @@ function crowbank_customer_bookings($attr) {
 				if ($deposit_url) {
 					$r .= '<a class="deposit_button" href="' . $deposit_url . '">Pay Deposit</a>';
 				}
+			}
+			
+			$r .= "</td><td>";
+			
+			if ($time == 'future') {
+				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no);
+				$r .= '<a class="cancel_booking_button" href="' . $cancellation_url . '">Cancel Booking</a>';
 			}
 			
 			$r .= "</td></tr>";
