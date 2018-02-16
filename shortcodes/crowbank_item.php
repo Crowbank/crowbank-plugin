@@ -101,7 +101,7 @@ function crowbank_next_week($attr) {
 	$next = clone($weekstart);
 	$next->add($week);
 	
-	return '<a href="' . $page . 'weekstart=' . $next->format('Y-m-d') . '">Next Week</a>';
+	return '<a href="' . $page . '/?weekstart=' . $next->format('Y-m-d') . '">Next Week</a>';
 }
 
 function crowbank_prev_month($attr) {
