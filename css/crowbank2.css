@@ -251,6 +251,9 @@ table th[class*="col-"] {
   background-color: #FE88DB;
 }
 
+.volunteer_class {
+  background-color: #4286f4;
+}
 
 .timesheet_table {
   border: 2px solid;
@@ -451,16 +454,61 @@ table th[class*="col-"] {
   background:    -webkit-linear-gradient(#3d85c6, #073763);
   background:    linear-gradient(#3d85c6, #073763);
   border-radius: 5px;
-  width:         120px;
-  height:        30px;
   color:         #ffffff;
   display:       inline-block;
   padding: 4px;
   font:          normal 700 18px/30px "Calibri", sans-serif;
   text-align:    center;
   text-shadow:   1px 1px #000000;
+  line-height: 100%;
   }
 
+
+.go_back_button {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9));
+	background:-moz-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);
+	background:-webkit-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);
+	background:-o-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);
+	background:-ms-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);
+	background:linear-gradient(to bottom, #f9f9f9 5%, #e9e9e9 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9f9f9', endColorstr='#e9e9e9',GradientType=0);
+	background-color:#f9f9f9;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+    line-height: 100%;
+    border-radius:5px;
+	display:inline-block;
+	cursor:pointer;
+	color:#666666;
+	font: normal 700 18px/30px "Calibri", sans-serif;
+	padding: 4px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #854629;
+	text-align: center;
+	border:1px solid #dcdcdc;
+	font: normal 700 18px/30px "Calibri", sans-serif;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #ffffff;
+	text-align: center;
+}
+
+.go_back_button:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #e9e9e9), color-stop(1, #f9f9f9));
+	background:-moz-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);
+	background:-webkit-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);
+	background:-o-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);
+	background:-ms-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);
+	background:linear-gradient(to bottom, #e9e9e9 5%, #f9f9f9 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#e9e9e9', endColorstr='#f9f9f9',GradientType=0);
+	background-color:#e9e9e9;
+}
+.go_back_button:active {
+	position:relative;
+	top:1px;
+}
 
 .cancel_booking_button {
 	-moz-box-shadow:inset 0px 1px 0px 0px #cf866c;
@@ -476,8 +524,7 @@ table th[class*="col-"] {
 	background-color:#d0451b;
 	-moz-border-radius:5px;
 	-webkit-border-radius:5px;
-    width:  120px;
-    height: 30px;
+	line-height: 100%;
 	border-radius:5px;
 	border:1px solid #942911;
 	display:inline-block;
@@ -487,6 +534,8 @@ table th[class*="col-"] {
 	padding: 4px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #854629;
+	text-align: center;
+	line-height: 100%;
 }
 .cancel_booking_button:hover {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #bc3315), color-stop(1, #d0451b));
@@ -620,4 +669,13 @@ input[type=radio   ]:not(old) + label{
   margin-left  : -28px;
   padding-left : 28px;
   line-height  : 24px;
+}
+
+#gform_wrapper_18 .gform_footer.top_label {
+	display: none;
+}
+
+#cancel_button {
+	height: auto!important;
+}
 }

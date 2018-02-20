@@ -48,6 +48,11 @@ class Booking {
 	}
 
 	public function add_pet($pet, $checkin, $checkout) {
+		if (!$pet) {
+			echo crowbank_error('NULL pet');
+			return;
+		}
+		
 		$this->pets[] = $pet;
 		if ($checkin) {
 			$this->pets_in[$pet->no] = TRUE;

@@ -181,6 +181,9 @@ function crowbank_customer_pets($attr)
 
 	$pets = $customer->get_pets();
 	foreach($pets as $pet) {
+		if ($pet->deceased == 'Y')
+			continue;
+		
 		$r .= "<tr><td>$pet->name</td>";
 		$r .= "<td>$pet->species</td>";
 		$breed_desc = $pet->breed->desc;
@@ -250,8 +253,8 @@ function crowbank_customer_bookings($attr) {
 			}
 
 			$class = STATUS_ARRAY[$status][0];
-			$start = $booking->start_date->format('d/m/Y');
-			$end = $booking->end_date->format('d/m/Y');
+			$start = $booking->start_date->format('d/m/y');
+			$end = $booking->end_date->format('d/m/y');
 
 			$r .= '<tr class="' . $class . '"><td><a href="' . $booking->confirmation_url();
 			$r .= '">';
@@ -271,8 +274,10 @@ function crowbank_customer_bookings($attr) {
 			
 			$r .= "</td><td>";
 			
-			if ($time == 'future') {
-				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no);
+			if ($time == 'future' and ($booking->status == ' ' or $booking->status == 'V')) {
+				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no .
+						'&cust_surname=' . $customer->surname . '&bk_pets=' . $booking->pet_names() .
+						'&bk_start_date=' . $booking->start_date->format("Y-m-d") . '&bk_end_date=' . $booking->end_date->format("Y-m-d"));
 				$r .= '<a class="cancel_booking_button" href="' . $cancellation_url . '">Cancel Booking</a>';
 			}
 			

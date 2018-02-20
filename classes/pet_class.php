@@ -12,6 +12,7 @@ class Pet {
 	public $vet;
 	public $vacc_status;
 	public $vacc_date;
+	public $deceased;
 
 	public $bookings = array();
 	
@@ -33,6 +34,7 @@ class Pet {
 		$this->vet = $petadmin->vets->get_by_no($vet_no);
 		$this->vacc_status = $row['pet_vacc_status'];
 		$this->vacc_date = new DateTime($row['pet_vacc_date']);
+		$this->deceased = $row['pet_deceased'];
 		
 		if (!$this->customer) {
 			echo "Could not find customer #$cust_no for pet #$this->no<br>";

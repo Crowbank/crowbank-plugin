@@ -72,6 +72,7 @@ class Timesheets {
 		'Shift Leader' => 'supervisor_class',
 		'Kennel Assistant' => 'assistant_class',
 		'Dog Walker' => 'walker_class',
+		'Volunteer' => 'volunteer_class',
 		'U' => 'unavailable_class',
 		'H' => 'vacation_class',
 		' ' => ''
