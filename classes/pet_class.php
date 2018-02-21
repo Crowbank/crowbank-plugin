@@ -46,6 +46,10 @@ class Pet {
 	public function add_booking($booking) {
 		$this->bookings[$booking->no] = $booking;
 	}
+	
+	public function description() {
+		return $this->name . '( ' . $this->breed->short_desc . ' )';
+	}
 }
 
 class Pets {
@@ -60,7 +64,7 @@ class Pets {
 	public function load($force = FALSE) {
 		global $petadmin_db, $petadmin;
 		$sql = "Select pet_no, pet_name, pet_cust_no, pet_spec, pet_breed_no, pet_dob, pet_warning,
-pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_vacc_date from vw_pet";
+pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_vacc_date, pet_deceased from vw_pet";
 		
 		if ($this->isLoaded and ! $force) {
 			return;

@@ -678,4 +678,35 @@ input[type=radio   ]:not(old) + label{
 #cancel_button {
 	height: auto!important;
 }
+
+.booking-confirmatoin .main-table {
+	text-align: left;
+	width: 100%;
+	border: 0;
+	cellpadding: 2;
+	cellspacing: 2
+}
+
+.booking-confirmatoin .conf-title {
+	border-top: 1pt solid rgb(164, 166, 166);
+	border-bottom: 1pt solid rgb(164, 166, 166);
+	background-color: rgb(214, 224, 226);
+}
+
+.booking-confirmatoin .field-name {
+	font-weight: bold;
+}
+
+.booking-confirmatoin .field-value {
+	text-align: right;
+}
+
+.booking-confirmatoin .small-print {
+	font-size: small;
+	font-style: italic;
+}
+
+
+
+
 }

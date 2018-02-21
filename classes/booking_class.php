@@ -261,4 +261,29 @@ from my_booking";
 			return isset($this->by_end_date[$date]) ? $this->by_end_date[$date] : null;
 		}
 	}
+	
+	public function create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comments, $status, $msg_no, $cost_estimate) {
+		global $petadmin_db;
+		/* 
+		 * Create a new temporary booking on mysql. All relevant tables are populated, with a separate mechanism maintaining the records
+		 * across database refreshes until the original message is marked as processed.
+		 * 
+		 * Only my_booking and my_bookingitem need to be updated.
+		 */
+		
+		$sql = 'insert into crowbank_petadmin.my_booking (bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time, bk_end_time, ';
+		$sql .= 'bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe) values (';
+		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $bk_start_date->format('Y-m-d') . "', '"  . $bk_end_date->format('Y-m-d') . "', '";
+		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
+		$sql .= ", 0.0, '" . $comments . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
+		
+		$petadmin_db->execute($sql);
+		
+		foreach ($pets as $pet) {
+			$sql = 'insert into crowbank_petadmin.my_bookingitem (bi_bk_no, bi_pet_no, bi_checkin_date, bi_checkin_time, bi_checkout_date, bi_checkin_time)';
+			$sql .= ' values (' . -$msg_no . ', ' . $pet->no . "'', '', '', '')";
+			
+			$petadmin_db->execute($sql);
+		}
+	}
 }

@@ -103,6 +103,38 @@ add_filter( 'gform_pre_validation_19', 'populate_pets' );
 add_filter( 'gform_pre_submission_filter_19', 'populate_pets' );
 add_filter( 'gform_admin_pre_render_19', 'populate_pets' );
 
+add_filter( 'gform_pre_render_20', 'check_booking_confirmation' );
+
+function time_slot_to_time($time_slot, $direction) {
+	if ($time_slot == 'am' and $direction == 'in') {
+		return '11:00';
+	} else if ($time_slot == 'am' and $direction == 'out') {
+		return '10:00';
+	} else if ($time_slot == 'pm' and $direction == 'in') {
+		return '16:00';
+	} else if ($time_slot == 'pm' and $direction == 'out') {
+		return '14:00';
+	} else {
+		return '';
+	}
+}
+
+
+function populate_customer_details( $form ) {
+	$customer = get_customer();
+	if ($customer) {
+		foreach ( $form['fields'] as &$field ) {
+			if ($field->inputName == 'cust_email') {
+				$field->defaultValue = $customer->email;		
+			}
+			if ($field->inputName == 'cust_name') {
+				$field->defaultValue = $customer->display_name();
+			}
+		}
+	}
+	return $form;	
+}
+
 function populate_months( $form ) {
 	$months = array (1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
 			7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December');
@@ -153,6 +185,8 @@ function populate_pets( $form ) {
 		$choices = array();
 
 		foreach ($pets as $pet) {
+			if ($pet->deceased != 'N')
+				continue;
 			$choices[] = array( 'text' => $pet->name, 'value' => $pet->no);
 		}
 
@@ -227,14 +261,14 @@ function crowbank_my_redirect() {
 }
 
 function crowbank_gform_script() {
-	wp_enqueue_script( 'crowbank_alert', plugins_url( '/alert.js', __FILE__));
+	wp_enqueue_script( 'crowbank_alert', plugins_url( '/js/booking-request.js', __FILE__));
 }
 
 function crowbank_hooks_init() {
 	add_action('um_post_registration_global_hook', 'crowbank_check_new_user',10, 2);
 	add_action('wp_footer', 'crowbank_display_log' );
 	add_action('template_redirect', 'crowbank_my_redirect', 10010);
-	add_action('gform_enqueue_scripts_6', 'crowbank_gform_script', 10, 2 );
+	add_action('gform_enqueue_scripts_19', 'crowbank_gform_script', 10, 2 );
 }
 add_action('init', 'crowbank_hooks_init');
 
@@ -273,8 +307,10 @@ function get_customer() {
 	$customer = NULL;
 
 	if ($user = wp_get_current_user()) {
-		$email = $user->data->user_email;
-		$customer = $petadmin->customers->get_by_email($email);
+		if ($user->data) {
+			$email = $user->data->user_email;
+			$customer = $petadmin->customers->get_by_email($email);
+		}
 	}
 
 	if (!$customer and isset($_REQUEST['cust'])) {
