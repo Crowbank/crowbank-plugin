@@ -88,6 +88,11 @@ function crowbank_shortcodes_init() {
 
 add_action('init', 'crowbank_shortcodes_init');
 
+add_action( 'wp_enqueue_scripts', 'enqueue_load_fa' );
+function enqueue_load_fa() {
+	wp_enqueue_style( 'load-fa', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css' );
+}
+
 add_filter( 'gform_pre_render_17', 'populate_months' );
 add_filter( 'gform_pre_validation_17', 'populate_months' );
 add_filter( 'gform_pre_submission_filter_17', 'populate_months' );
@@ -98,10 +103,10 @@ add_filter( 'gform_pre_validation_18', 'populate_months' );
 add_filter( 'gform_pre_submission_filter_18', 'populate_months' );
 add_filter( 'gform_admin_pre_render_18', 'populate_months' );
 
-add_filter( 'gform_pre_render_19', 'populate_pets' );
-add_filter( 'gform_pre_validation_19', 'populate_pets' );
-add_filter( 'gform_pre_submission_filter_19', 'populate_pets' );
-add_filter( 'gform_admin_pre_render_19', 'populate_pets' );
+add_filter( 'gform_pre_render_19', 'populate_booking_form' );
+add_filter( 'gform_pre_validation_19', 'populate_booking_form' );
+add_filter( 'gform_pre_submission_filter_19', 'populate_booking_form' );
+add_filter( 'gform_admin_pre_render_19', 'populate_booking_form' );
 
 add_filter( 'gform_pre_render_20', 'check_booking_confirmation' );
 
@@ -160,36 +165,6 @@ function populate_months( $form ) {
 				$month += 1;
 		}
 		
-		// update 'Select a Post' to whatever you'd like the instructive option to be
-		$field->choices = $choices;
-		
-	}
-	
-	return $form;
-}
-
-function populate_pets( $form ) {
-	$customer = get_customer();
-	
-	if (!$customer)
-		return $form;
-	
-	$pets = $customer->get_pets();
-	
-	foreach ( $form['fields'] as &$field ) {
-		
-		if ( $field->type != 'checkbox' || strpos( $field->cssClass, 'populate_pets' ) === false ) {
-			continue;
-		}
-		
-		$choices = array();
-
-		foreach ($pets as $pet) {
-			if ($pet->deceased != 'N')
-				continue;
-			$choices[] = array( 'text' => $pet->name, 'value' => $pet->no);
-		}
-
 		// update 'Select a Post' to whatever you'd like the instructive option to be
 		$field->choices = $choices;
 		

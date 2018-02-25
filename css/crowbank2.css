@@ -226,6 +226,11 @@ table th[class*="col-"] {
   background-color: #AAAAAA;
 }
 
+.requestedbooking {
+  background-color: #e6e874;
+  font-style: italic;
+}
+
 .pastbooking { 
 }
 
@@ -449,19 +454,76 @@ table th[class*="col-"] {
   background: rgba(0, 253, 255, 0.54);
   }
 
-.deposit_button {
-  background:    #3d85c6;
-  background:    -webkit-linear-gradient(#3d85c6, #073763);
-  background:    linear-gradient(#3d85c6, #073763);
+.booking_request_button {
+  background: #3498db;
+  background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+  background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+  background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+  background-image: -o-linear-gradient(top, #3498db, #2980b9);
+  background-image: linear-gradient(to bottom, #3498db, #2980b9);
+  -webkit-border-radius: 10;
+  -moz-border-radius: 10;
+  border-radius: 10px;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 20px;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+}
+
+.booking_request_button:hover {
+  background: #3cb0fd;
+  background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+
+.table_button {
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
   border-radius: 5px;
-  color:         #ffffff;
-  display:       inline-block;
+  font:    normal 700 18px/30px "Calibri", sans-serif;
   padding: 4px;
-  font:          normal 700 18px/30px "Calibri", sans-serif;
   text-align:    center;
   text-shadow:   1px 1px #000000;
-  line-height: 100%;
-  }
+  line-height: 100%;	
+  display:       inline-block;
+  text-shadow:0px 1px 0px #854629;
+}
+
+.booking_edit_button {
+  background: #3498db;
+  background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+  background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+  background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+  background-image: -o-linear-gradient(top, #3498db, #2980b9);
+  background-image: linear-gradient(to bottom, #3498db, #2980b9);
+  color: #ffffff;
+}
+
+.booking_edit_button:hover {
+  background: #3cb0fd;
+  background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+
+.deposit_button {
+	
+  background: #34d94d;
+  background-image: -webkit-linear-gradient(top, #34d94d, #178751);
+  background-image: -moz-linear-gradient(top, #34d94d, #178751);
+  background-image: -ms-linear-gradient(top, #34d94d, #178751);
+  background-image: -o-linear-gradient(top, #34d94d, #178751);
+  background-image: linear-gradient(to bottom, #34d94d, #178751);
+  color:         #ffffff;
+ }
 
 
 .go_back_button {
@@ -522,20 +584,7 @@ table th[class*="col-"] {
 	background:linear-gradient(to bottom, #d0451b 5%, #bc3315 100%);
 	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#d0451b', endColorstr='#bc3315',GradientType=0);
 	background-color:#d0451b;
-	-moz-border-radius:5px;
-	-webkit-border-radius:5px;
-	line-height: 100%;
-	border-radius:5px;
-	border:1px solid #942911;
-	display:inline-block;
-	cursor:pointer;
 	color:#ffffff;
-	font: normal 700 18px/30px "Calibri", sans-serif;
-	padding: 4px;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #854629;
-	text-align: center;
-	line-height: 100%;
 }
 .cancel_booking_button:hover {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #bc3315), color-stop(1, #d0451b));
@@ -706,7 +755,9 @@ input[type=radio   ]:not(old) + label{
 	font-style: italic;
 }
 
-
+.booking-confirmation .changed_field {
+	background-color: #999999;
+}
 
 
 }

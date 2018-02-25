@@ -5,27 +5,54 @@
  * and the result of availability and cost estimate.
  * 
  * Those results are injected into an empty html element in the form.
- * Finally, the function modifies the title of the Submit button to correspond
+ * The function also fills the Subject and Pet Names hidden fields used
+ * in the email notification sent upon successful completion.
+ * The function modifies the title of the Submit button to correspond
  * to the nature of the default action.
  * 
  * A sepearate function, running *after* booking-request-confirmation is submitted,
  * will create both the temporary booking and the Message back to Crowbank.
  */
 
+function check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, $dog_weight) {
+	global $petadmin_db;
+	
+	$sql = "call pa_booking_availability('" . $start_date->format('Y-m-d') . "', '" . $end_date->format('Y-m-d');
+	$sql .= "', '" . $end_time . "', " . $is_deluxe . ", " . $dog_count . ", " . $cat_count . ", " . $dog_weight . ");";
+	
+	$result = $petadmin_db->execute($sql);
+	
+	if ($result) {
+		$availability = $result[0]['availability'];
+	}
+	else {
+		$msg = 'Failed running ' . $sql;
+		echo crowbank_error($msg);
+		return 1;
+	}
+	
+	return $availability;
+}
+
 function check_booking_confirmation( $form ) {
 	global $petadmin, $petadmin_db, $wp;
 
+	$availability_responses = array('A new booking will be created, and you should receive an email confirmation shortly',
+			'We will have to check availability, and get back to you',
+			'We will create a standby booking for you, and will get back in touch as soon as space becomes available');
+	
 	$customer = get_customer();
 	
 	populate_customer_details( $form );
 	
 	$booking = null;
 	$bk_no = 0;
+	$changed_fields = array();
 	
 	if (isset($_REQUEST['bk_no'])) {
 		$bk_no = $_REQUEST['bk_no'];
 		if ($bk_no) {
-			$booking = $petadmin->bookings->by_no($bk_no);
+			$booking = $petadmin->bookings->get_by_no($bk_no);
 			if (!$booking or $booking->customer->no <> $customer->no) {
 				echo crowbank_error('Invalid Booking');
 				return -1;
@@ -41,11 +68,29 @@ function check_booking_confirmation( $form ) {
 	}
 	
 	$pets_array = explode(', ', $pet_numbers);
+	sort($pets_array);
+	$pet_numbers = implode(',', $pets_array);
+	
+	if ($booking) {
+		$original_pet_numbers = '';
+		foreach($booking->pets as $p) {
+			if ($original_pet_numbers) {
+				$original_pet_numbers .= ',';
+			}
+			$original_pet_numbers .= $p->no;
+		}
+		
+		if ($original_pet_numbers <> $pet_numbers) {
+			$changed_fields[] = 'pets';
+		}
+	}
+	
 	$pet_names = '';
 	$dog_count = 0;
 	$cat_count = 0;
 	$pets = array();
-	
+	$dog_weight = 0;
+
 	foreach ($pets_array as $pet_no) {
 		$pet = $petadmin->pets->get_by_no($pet_no);
 		if (!$pet) {
@@ -53,15 +98,40 @@ function check_booking_confirmation( $form ) {
 			return -1;
 		}
 
-		if ($pet->species == 'Dog')
+		if ($pet->species == 'Dog') {
 			$dog_count += 1;
-		else
+			if ($pet->breed->billcat == 'Dog large')
+				$dog_weight += 3;
+			else if ($pet->breed->billcat == 'Dog medium')
+				$dog_weight += 2;
+			else if ($pet->breed->billcat == 'Dog small')
+				$dog_weight += 1;
+			else {
+				echo crowbank_error('Bad billing category for ' . $pet->name . '(' . $pet->breed->desc . ')');
+				return -1;
+			}
+		} else {
 			$cat_count += 1;
+		}
 		$pets[] = $pet;
+	}
+
+	for($i = 0; $i < count($pets); $i++) {
+		$name = $pets[$i]->name;
+		if ($i == 0) {
+			$pet_names = $name;
+		} else if ($i == count($pets) - 1) {
+			$pet_names .= " and " . $name;
+		} else {
+			$pet_names .= ", " . $name;
+		}
 	}
 	
 	if (isset($_REQUEST['start_date'])) {
 		$start_date = new DateTime(htmlspecialchars_decode($_REQUEST['start_date']));
+		if ($booking and $start_date->getTimestamp() != $booking->start_date->getTimestamp()) {
+			$changed_fields[] = 'start_date';
+		}
 	} else {
 		echo crowbank_error('Invalid or missing start date');
 		return -1;
@@ -69,6 +139,9 @@ function check_booking_confirmation( $form ) {
 	
 	if (isset($_REQUEST['start_time'])) {
 		$start_time = $_REQUEST['start_time'];
+		if ($booking and $start_time != $booking->start_time_slot()) {
+			$changed_fields[] = 'start';
+		}
 	} else {
 		echo crowbank_error('Invalid or missing start time');
 		return -1;
@@ -76,6 +149,9 @@ function check_booking_confirmation( $form ) {
 	
 	if (isset($_REQUEST['end_date'])) {
 		$end_date = new DateTime(htmlspecialchars_decode($_REQUEST['end_date']));
+		if ($booking and $end_date->getTimestamp() != $booking->end_date->getTimestamp()) {
+			$changed_fields[] = 'end';
+		}
 	} else {
 		echo crowbank_error('Invalid or missing end date');
 		return -1;
@@ -83,6 +159,9 @@ function check_booking_confirmation( $form ) {
 	
 	if (isset($_REQUEST['end_time'])) {
 		$end_time = $_REQUEST['end_time'];
+		if ($booking and $end_time != $booking->end_time_slot()) {
+			$changed_fields[] = 'end';
+		}
 	} else {
 		echo crowbank_error('Invalid or missing end time');
 		return -1;
@@ -94,18 +173,25 @@ function check_booking_confirmation( $form ) {
 		$kennel = 'Standard';
 	}
 	
-	$comments = '';
-	if (isset($_REQUEST['comments'])) {
-		$comments = htmlspecialchars_decode($_REQUEST['comments']);
-	}
-		
 	if ($kennel == 'Deluxe') {
 		$is_deluxe = 1;
 	}
 	else {
 		$is_deluxe = 0;
 	}
-			
+	
+	if ($booking and $booking->deluxe != $is_deluxe) {
+		$changed_fields[] = 'deluxe';
+	}
+	
+	$comment = '';
+	if (isset($_REQUEST['comment'])) {
+		$comment = htmlspecialchars_decode($_REQUEST['comment']);
+		if ($booking and $booking->memo != $comment) {
+			$changed_fields[] = 'comment';
+		}
+	}
+	
 	$sql = "select rate_start_date, rate_category, rate_service, rate_amount from my_rate order by rate_start_date desc";
 	$result = $petadmin_db->execute($sql);
 	
@@ -121,17 +207,18 @@ function check_booking_confirmation( $form ) {
 		}
 	}
 	
-		
-	$sql = "call pa_booking_availability('" . $start_date->format('Y-m-d') . "', '" . $end_date->format('Y-m-d');
-	$sql .= "', '" . $end_time . "', " . $is_deluxe . ", " . $dog_count . ", " . $cat_count . ");";
+	$availability = check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, $dog_weight);
 	
-	$result = $petadmin_db->execute($sql);
+	if ($availability == 2 and $dog_weight > 3 and $is_deluxe == 0) {
+		$standard_availability = check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, 2);
+		if ($standard_availability < 2) {
+			$availability = 1;
+		}
+	}
 	
-	foreach ($result as $row) {
-		$availability = $row['availability'];
-		$availability_statement = $availability_responses[$availability];
-	}	
-		
+	$availability_statement = $availability_responses[$availability];
+	
+	$cost_comment = '';
 	if ($dog_count < 3 and $cat_count < 3) {
 		$night_rate = 0.0;
 		$first_dog = true;
@@ -144,6 +231,12 @@ function check_booking_confirmation( $form ) {
 			
 			if (($pet->species == 'Dog' and $first_dog) or (($pet->species == 'Cat' and $first_cat))) {
 				$rate_service = 'BOARD';
+				if ($pet->species == 'Dog') {
+					$first_dog = FALSE;
+				}
+				if ($pet->species == 'Cat') {
+					$first_cat = FALSE;
+				}
 			} else {
 				$rate_service = 'BOARD2';
 			}
@@ -159,11 +252,15 @@ function check_booking_confirmation( $form ) {
 			
 		$cost_estimate = $night_rate * $interval;
 		
+		if ($booking and $cost_estimate != $booking->gross_amt) {
+			$changed_fields[] = 'cost';
+		}
+		
 		if ($dog_count == 2 and $cat_count < 2) {
 			$cost_comment = ' (with both dogs sharing a kennel)';
 		} else if ($dog_count == 2 and $cat_count == 2) {
 			$cost_comment = ' (with both dogs sharing a kennel and both cats sharing a pen)';
-		} else if ($dog_count < 1 and $cat_count == 2) {
+		} else if ($dog_count < 2 and $cat_count == 2) {
 			$cost_comment = ' (with both cats sharing a pen)';
 		}
 	} else {
@@ -174,13 +271,13 @@ function check_booking_confirmation( $form ) {
 	/* with preparation out of the way, start populating the html element */
 	
 	$r = '<div class="booking-confirmation"><table class="table"><tbody>';
-	$r .= '<tr><td class="field-name">Pets</td><td class="field-value">';
+	$r .= '<tr' . (in_array('pets', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Pets</td><td class="field-value">';
 	foreach ($pets as $pet) {
 		$r .= $pet->description() . '<br>';
 	}
 	$r .= '</td></tr>';
 	
-	$r .= '<tr><td class="field-name">Arriving</td><td class="field-value">';
+	$r .= '<tr' . (in_array('start', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Arriving</td><td class="field-value">';
 	$r .= $start_date->format('D d/m/y') . ' ';
 	if ($start_time == 'am') {
 		$r .= '11:00';
@@ -189,7 +286,7 @@ function check_booking_confirmation( $form ) {
 	}
 	$r .= '</td></tr>';
 	
-	$r .= '<tr><td class="field-name">Leaving</td><td class="field-value">';
+	$r .= '<tr' . (in_array('end', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Leaving</td><td class="field-value">';
 	$r .= $end_date->format('D d/m/y') . ' ';
 	if ($end_time == 'am') {
 		$r .= '10:00';
@@ -198,7 +295,17 @@ function check_booking_confirmation( $form ) {
 	}
 	$r .= '</td></tr>';
 	
-	$r .= '<tr><td class="field-name">Estimated Cost</td><td class="field-value">';
+	if ($dog_count > 0) {
+		$r .= '<tr' . (in_array('deluxe', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Kennel</td><td class="field-value">';
+		if ($is_deluxe) {
+			$r .= 'Deluxe';
+		} else {
+			$r .= 'Standard';
+		}
+		$r .= '</td></tr>';
+	}
+	
+	$r .= '<tr' . (in_array('cost', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Estimated Cost</td><td class="field-value">';
 	if ($cost_estimate) {
 		$r .= '£' . number_format($cost_estimate, 2, '.', ',');
 		if ($cost_comment) {
@@ -223,9 +330,26 @@ function check_booking_confirmation( $form ) {
 		$r .= ' full">No availability for some dates - we suggest a standby booking';
 		$form['button']['text'] = 'Create Standby Booking';
 	}
+	
+	if ($booking) {
+		$form['button']['text'] = 'Amend Booking';
+	}
 		
 	$r .= '</td></tr>';
+	
+	$r .= '<tr' . (in_array('comment', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Comment</td><td class="field-value">';
+	$r .= $comment . '</td></tr>';
+	
 	$r .= '</tbody></table></div>';
+	
+	$subject = 'Booking Request from ' . $customer->surname . ' for ' . $pet_names . ' - ';
+	if ($availability == 0) {
+		$subject .= 'Booking Created';
+	} else if ($availability == 1) {
+		$subject .= 'Provisional Booking Created - Must Check';
+	} else if ($availability == 2) {
+		$subject .= 'Standby Booking Created';
+	}
 	
 	foreach ( $form['fields'] as &$field ) {
 		
@@ -240,12 +364,21 @@ function check_booking_confirmation( $form ) {
 		if ( $field->type == 'hidden' and $field->label == 'Cost Estimate') {
 			$field->defaultValue = $cost_estimate;
 		}
+		
+		if ( $field->type == 'hidden' and $field->label == 'Subject') {
+			$field->defaultValue = $subject;
+		}
+	
+		if ( $field->type == 'hidden' and $field->label == 'Pet Names') {
+			$field->defaultValue = $pet_names;
+		}
 	}
+	
+	return $form;
 }
 
-
 function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
-	global $petadmin;
+	global $petadmin, $wp;
 	
 	/*
 	 * This function is called *after* the customer submitted the booking confirmation form.
@@ -257,10 +390,6 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	 * 
 	 * It also sends an appropriate message to Crowbank, facilitating the creation (or modification) of the actual booking
 	 */
-	
-	$availability_responses = array('A new booking will be created, and you should receive an email confirmation shortly',
-			'We will have to check availability, and get back to you',
-			'We will create a standby booking for you, and will get back in touch as soon as space becomes available');
 	
 	/*
 	 * http://192.168.0.200/wordpress/booking-request-confirmation/?
@@ -276,6 +405,10 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	 * cost_estimate=123.45
 	 */
 	
+	$availability_responses = array('A new booking will be created, and you should receive an email confirmation shortly',
+			'We will have to check availability, and get back to you',
+			'We will create a standby booking for you, and will get back in touch as soon as space becomes available');
+	
 	$current_url = home_url(add_query_arg(array(), $wp->request));
 	
 	$customer = get_customer();
@@ -286,7 +419,7 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	if (isset($_REQUEST['bk_no'])) {
 		$bk_no = $_REQUEST['bk_no'];
 		if ($bk_no) {
-			$booking = $petadmin->bookings->by_no($bk_no);
+			$booking = $petadmin->bookings->get_by_no($bk_no);
 			if (!$booking or $booking->customer->no <> $customer->no) {
 				return crowbank_error('Invalid Booking');
 			}
@@ -341,15 +474,15 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 		$kennel = 'Standard';
 	}
 	
-	$comments = '';
-	if (isset($_REQUEST['comments'])) {
-		$comments = htmlspecialchars_decode($_REQUEST['comments']);
+	$comment = '';
+	if (isset($_REQUEST['comment'])) {
+		$comment = htmlspecialchars_decode($_REQUEST['comment']);
 	}
 	
-	if (isset($_REQUEST['availabililty'])) {
+	if (isset($_REQUEST['availability'])) {
 		$availability = $_REQUEST['availability'];
 	} else {
-		crowbank_error('Must select choice of action');
+		$availability = 1;
 	}
 	
 	if (isset($_REQUEST['cost_estimate'])) {
@@ -368,28 +501,32 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 		$is_deluxe = 0;
 
 	
-	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers, 'start_date' => $start_date->format('Ymd'),
-			'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'), 'end_time' => $end_time, 'kennel' => $kennel,
-			'comments' => $comments, 'availability' => $availability, 'cost_estimate' => $cost_estimate]);
-	
-	$msg->flush();
-	
 	if ($availability == 0) {
-		$status = 'B';
+		$status = '';
 	} else if ($availability == 1) {
 		$status = 'P';
 	} else if ($availability == 2) {
 		$status = 'S';
 	}
+		
+	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers, 'start_date' => $start_date->format('Ymd'),
+		'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'), 'end_time' => $end_time, 'deluxe' => $is_deluxe,
+		'comment' => $comment, 'availability' => $availability, 'cost_estimate' => $cost_estimate, 'status' => $status]);
 	
-	$petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time,
-			$end_date, $end_time, $is_deluxe, $comments, $status, $msg->id, $cost_estimate);
+	$msg->flush();
+	
+	if ($booking) {
+		$booking->amend_booking($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate);
+	} else {
+		$petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time,
+				$end_date, $end_time, $is_deluxe, $comment, $status, $msg->id, $cost_estimate);
+	}
 	
 	if ($bk_no) {
 		$r = 'Your booking amendment request has been processed.<br>You should get an email confirmation shortly.';
 	} else {
 		$r = 'Your booking request has been processed.<br>';
-		$r .= $availability_statement;
+		$r .= $availability_responses[$availability];
 	}
 	
 	return $r;
@@ -427,6 +564,8 @@ function crowbank_booking_cancellation($attr = [], $content = null, $tag = '') {
 			$msg = new Message('booking-cancel',
 					['cust_no' => $customer->no, 'bk_no' => $booking->no]);
 			$msg->flush();
+			
+			$booking->cancel_booking();
 			
 			$r = 'Your cancellation request has been processed - you should get an email confirmation shortly';
 			return $r;
@@ -476,3 +615,94 @@ function crowbank_booking_cancellation_aa($attr = [], $content = null, $tag = ''
 			
 			return $r;
 }
+
+function populate_booking_form ($form) {
+	/* 
+	 * This function is called to populate the (visible) booking request form.
+	 * If this is a new booking, only pet names are populated.
+	 * If this is an edit of an existing booking, all other fields are also populated.
+	 */
+	global $petadmin;
+	
+	$customer = get_customer();
+	
+	if (!$customer) {
+		return $form;
+	}
+	
+	$bk_no = 0;
+	$booking = null;
+	
+	if (isset($_REQUEST['bk_no'])) {
+		$bk_no = $_REQUEST['bk_no'];
+		$booking = $petadmin->bookings->get_by_no($bk_no); 
+		if ($booking->customer->no != $customer->no) {
+			echo crowbank_error('Customer/booking mismatch');
+			return $form;
+		}
+	}
+
+	
+	$pets = $customer->get_pets();
+	
+	foreach ( $form['fields'] as &$field ) {
+		
+		if ( $field->label == 'Pets') {
+			$choices = array();
+			
+			foreach ($pets as $pet) {
+				if ($pet->deceased != 'N') {
+					continue;
+				}
+				
+				$in_booking = false;
+				if ($booking and $booking->check_pet($pet)) {
+					$in_booking = true;
+				}
+
+				$choices[] = array( 'text' => $pet->name, 'value' => $pet->no, 'isSelected' => $in_booking);
+			}
+			
+			// update 'Select a Post' to whatever you'd like the instructive option to be
+			$field->choices = $choices;
+		}
+		
+		if (!$booking) {
+			continue;
+		}
+		
+		if ($field->label == 'Start Date') {
+			$field->defaultValue = $booking->start_date->format('Y-m-d');
+		}
+		
+		if ($field->label == 'Start Time') {
+			$start_time_slot = $booking->start_time_slot();
+			
+			$field->choices[0]['isSelected'] = ($start_time_slot == 'am');
+			$field->choices[1]['isSelected'] = ($start_time_slot == 'pm');
+		}
+		
+		if ($field->label == 'End Date') {
+			$field->defaultValue = $booking->end_date->format('Y-m-d');
+		}
+		
+		if ($field->label == 'End Time') {
+			$end_time_slot = $booking->end_time_slot();
+			
+			$field->choices[0]['isSelected'] = ($end_time_slot == 'am');
+			$field->choices[1]['isSelected'] = ($end_time_slot == 'pm');
+		}
+		
+		if ($field->label == 'Kennel Type') {
+			$field->choices[0]['isSelected'] = !$booking->deluxe;
+			$field->choices[1]['isSelected'] = $booking->deluxe;
+		}
+		
+		if ($field->label == 'Comments') {
+			$field->defaultValue = $booking->memo;
+		}
+	}
+	
+	return $form;
+}
+

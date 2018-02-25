@@ -44,6 +44,8 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_weekstart($attr);
 	elseif ($type == 'date_link')
 		return crowbank_date_link($attr);
+	elseif ($type == 'new-booking-request')
+		return crowbank_new_booking_request($attr);
 	else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
@@ -156,3 +158,16 @@ function crowbank_weekstart($attr) {
 
 	return $weekstart->format($format);
 }
+
+function crowbank_new_booking_request($attr) {
+	$customer = get_customer();
+	
+	$request_url = home_url('booking-request/?cust=' . $customer->no);
+	
+	
+	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa fa-calendar" style="padding-right: 10px"></i> New Booking Request</a>';
+
+	return $r;
+}
+
+

@@ -21,6 +21,7 @@ class Booking {
 	public $has_dogs = FALSE;
 	public $has_cats = FALSE;
 	public $outstanding_amt;
+	public $pet_names;
 	
 	public function __construct($row) {
 		global $petadmin;
@@ -79,7 +80,17 @@ class Booking {
 		}
 	}
 	
+	public function check_pet($pet) {
+		foreach ($this->pets as $p) {
+			if ($p->no == $pet->no) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public function pet_names() {
+		$names = '';
 		for($i = 0; $i < count($this->pets); $i++) {
 			$name = $this->pets[$i]->name;
 			if ($i == 0) {
@@ -89,7 +100,6 @@ class Booking {
 			} else {
 				$names .= ", " . $name;
 			}
-			
 		}
 		return $names;
 	}
@@ -165,6 +175,60 @@ class Booking {
 	
 	public function confirmation_url() {
 		return home_url('confirmation/?bk_no=' . $this->no . '&cust=' . $this->customer->no);
+	}
+	
+	public function start_time_slot() {
+		if ($this->start_time < '12:30') {
+			return 'am';
+		}
+		
+		return 'pm';
+	}
+
+	public function end_time_slot() {
+		if ($this->end_time < '12:30') {
+			return 'am';
+		}
+		
+		return 'pm';
+	}
+	
+	public function cancel_booking() {
+		global $petadmin_db;
+		
+		$this->status = 'C';
+		$sql = "update my_booking set bk_status = 'C' where bk_no = " . $this->no;
+		
+		$petadmin_db->execute($sql);
+	}
+	
+	public function amend_booking($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate) {
+		global $petadmin_db;
+		
+		$this->pets = array();
+		$this->has_dogs = false;
+		$this->has_cats = false;
+		
+		foreach ($pets as $pet) {
+			$this->add_pet($pet, false, false);
+		}
+		
+		$this->start_date = $start_date;
+		$this->start_time = time_slot_to_time($start_time, 'in');
+		$this->end_date = $end_date;
+		$this->end_time = time_slot_to_time($end_time, 'out');
+		
+		$this->deluxe = $is_deluxe;
+		$this->memo = $comment;
+		$this->status = $status;
+		$this->gross_amt = $cost_estimate;
+		
+		$sql = "update my_booking set bk_start_date = '" . $start_time->format('Y-m-d') . "', bk_start_time = '" . $this->start_time;
+		$sql .= "', bk_end_date = '" . $end_date->format('Y-m-d') . "', bk_end_time = '" . $this->end_time . "', bk_memo = '";
+		$sql .= $comment . "', bk_gross_amt = " . $cost_estimate . ", bk_deluxe = " . $is_deluxe;
+		$sql .= ' where bk_no = ' . $this->no;
+		
+		$petadmin_db->execute($sql);
 	}
 }
 
@@ -273,7 +337,7 @@ from my_booking";
 		
 		$sql = 'insert into crowbank_petadmin.my_booking (bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time, bk_end_time, ';
 		$sql .= 'bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe) values (';
-		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $bk_start_date->format('Y-m-d') . "', '"  . $bk_end_date->format('Y-m-d') . "', '";
+		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
 		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
 		$sql .= ", 0.0, '" . $comments . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
 		
@@ -281,7 +345,7 @@ from my_booking";
 		
 		foreach ($pets as $pet) {
 			$sql = 'insert into crowbank_petadmin.my_bookingitem (bi_bk_no, bi_pet_no, bi_checkin_date, bi_checkin_time, bi_checkout_date, bi_checkin_time)';
-			$sql .= ' values (' . -$msg_no . ', ' . $pet->no . "'', '', '', '')";
+			$sql .= ' values (' . -$msg_no . ', ' . $pet->no . ", '', '', '', '')";
 			
 			$petadmin_db->execute($sql);
 		}

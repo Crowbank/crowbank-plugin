@@ -48,7 +48,7 @@ class Pet {
 	}
 	
 	public function description() {
-		return $this->name . '( ' . $this->breed->short_desc . ' )';
+		return $this->name . ' (' . $this->breed->short_desc . ')';
 	}
 }
 
