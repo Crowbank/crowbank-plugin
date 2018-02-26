@@ -243,7 +243,7 @@ function crowbank_hooks_init() {
 	add_action('um_post_registration_global_hook', 'crowbank_check_new_user',10, 2);
 	add_action('wp_footer', 'crowbank_display_log' );
 	add_action('template_redirect', 'crowbank_my_redirect', 10010);
-	add_action('gform_enqueue_scripts_19', 'crowbank_gform_script', 10, 2 );
+	add_action('gform_enqueue_scripts_25', 'crowbank_gform_script', 10, 2 );
 }
 add_action('init', 'crowbank_hooks_init');
 

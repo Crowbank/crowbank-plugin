@@ -14,25 +14,25 @@ function check_for_sunday (date_field, time_field) {
 
 jQuery(document).ready(function(){
 	gform.addFilter( 'gform_datepicker_options_pre_init', function( optionsObj, formId, fieldId ) {
-	    if ( formId == 19 && fieldId == 14 ) {
+	    if ( formId == 25 && fieldId == 14 ) {
 	        optionsObj.minDate = 0;
 	        optionsObj.onClose = function (dateText, inst) {
-	             jQuery('#input_19_15').datepicker('option', 'minDate', dateText); /*.datepicker('setDate', dateText); */
+	             jQuery('#input_25_15').datepicker('option', 'minDate', dateText); /*.datepicker('setDate', dateText); */
 	        };
 	       /* check_for_sunday(optionsObj, "#choice_19_6_1"); */
 	    }
 	    
-	    if ( formId == 19 && fieldId == 15 ) {
+	    if ( formId == 25 && fieldId == 15 ) {
 	        /* check_for_sunday(optionsObj, "#choice_19_7_1"); */
 	    }	    
 	    return optionsObj;
 	});
 	
-	jQuery( "#input_19_14" ).change(function(){
-		check_for_sunday(jQuery( "#input_19_14" ), "#choice_19_6_1");
+	jQuery( "#input_25_14" ).change(function(){
+		check_for_sunday(jQuery( "#input_25_14" ), "#choice_25_6_1");
     });
 
-	jQuery( "#input_19_15" ).change(function(){
-		check_for_sunday(jQuery( "#input_19_15" ), "#choice_19_7_1");
+	jQuery( "#input_25_15" ).change(function(){
+		check_for_sunday(jQuery( "#input_25_15" ), "#choice_25_7_1");
     });
 });
