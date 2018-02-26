@@ -93,22 +93,24 @@ function enqueue_load_fa() {
 	wp_enqueue_style( 'load-fa', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css' );
 }
 
-add_filter( 'gform_pre_render_17', 'populate_months' );
-add_filter( 'gform_pre_validation_17', 'populate_months' );
-add_filter( 'gform_pre_submission_filter_17', 'populate_months' );
-add_filter( 'gform_admin_pre_render_17', 'populate_months' );
+add_filter( 'gform_pre_render_23', 'populate_months' );
+/* add_filter( 'gform_pre_validation_23', 'populate_months' );
+add_filter( 'gform_pre_submission_filter_23', 'populate_months' );
+add_filter( 'gform_admin_pre_render_23', 'populate_months' ); */
 
-add_filter( 'gform_pre_render_18', 'populate_months' );
-add_filter( 'gform_pre_validation_18', 'populate_months' );
-add_filter( 'gform_pre_submission_filter_18', 'populate_months' );
-add_filter( 'gform_admin_pre_render_18', 'populate_months' );
+add_filter( 'gform_pre_render_23', 'populate_months' );
+/*
+add_filter( 'gform_pre_validation_23', 'populate_months' );
+add_filter( 'gform_pre_submission_filter_23', 'populate_months' );
+add_filter( 'gform_admin_pre_render_23', 'populate_months' ); */
 
-add_filter( 'gform_pre_render_19', 'populate_booking_form' );
-add_filter( 'gform_pre_validation_19', 'populate_booking_form' );
-add_filter( 'gform_pre_submission_filter_19', 'populate_booking_form' );
-add_filter( 'gform_admin_pre_render_19', 'populate_booking_form' );
+add_filter( 'gform_pre_render_25', 'populate_booking_form' );
+/*
+add_filter( 'gform_pre_validation_25', 'populate_booking_form' );
+add_filter( 'gform_pre_submission_filter_25', 'populate_booking_form' );
+add_filter( 'gform_admin_pre_render_25', 'populate_booking_form' ); */
 
-add_filter( 'gform_pre_render_20', 'check_booking_confirmation' );
+add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
 
 function time_slot_to_time($time_slot, $direction) {
 	if ($time_slot == 'am' and $direction == 'in') {

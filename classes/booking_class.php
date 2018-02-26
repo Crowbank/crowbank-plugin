@@ -336,7 +336,7 @@ from my_booking";
 		 */
 		
 		$sql = 'insert into crowbank_petadmin.my_booking (bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time, bk_end_time, ';
-		$sql .= 'bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe) values (';
+		$sql .= 'bk_gross_amt, bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
 		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
 		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
 		$sql .= ", 0.0, '" . $comments . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
@@ -344,7 +344,7 @@ from my_booking";
 		$petadmin_db->execute($sql);
 		
 		foreach ($pets as $pet) {
-			$sql = 'insert into crowbank_petadmin.my_bookingitem (bi_bk_no, bi_pet_no, bi_checkin_date, bi_checkin_time, bi_checkout_date, bi_checkin_time)';
+			$sql = 'insert into crowbank_petadmin.my_bookingitem (bi_bk_no, bi_pet_no, bi_checkin_date, bi_checkin_time, bi_checkout_date, bi_checkout_time)';
 			$sql .= ' values (' . -$msg_no . ', ' . $pet->no . ", '', '', '', '')";
 			
 			$petadmin_db->execute($sql);
