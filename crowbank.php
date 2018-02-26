@@ -236,7 +236,7 @@ function crowbank_my_redirect() {
 }
 
 function crowbank_gform_script() {
-	wp_enqueue_script( 'crowbank_alert', plugins_url( '/js/booking-request.js', __FILE__));
+	wp_enqueue_script( 'crowbank_alert', plugins_url( '/js/booking-form.js', __FILE__));
 }
 
 function crowbank_hooks_init() {
