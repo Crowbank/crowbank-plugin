@@ -202,7 +202,7 @@ class Booking {
 		$petadmin_db->execute($sql);
 	}
 	
-	public function amend_booking($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate) {
+	public function update($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate) {
 		global $petadmin_db;
 		
 		$this->pets = array();
@@ -349,5 +349,16 @@ from my_booking";
 			
 			$petadmin_db->execute($sql);
 		}
+	}
+	
+	public function find_overlapping($customer, $start_date, $end_date) {
+		$customer_bookings = $customer->get_bookings();
+		
+		foreach ( $customer_bookings as $booking ) {
+			if ( $booking->start_date <= $end_date and $booking->end_date >= $start_date )
+				return true;
+		}
+		
+		return false;
 	}
 }

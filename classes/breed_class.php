@@ -16,11 +16,23 @@ class Breed {
 }
 
 class Breeds {
-	public $by_no = array();
-	public $by_short_desc = array();
-	public $count = 0;
+	private $by_no = array();
+	private $by_short_desc = array();
+	private $dog_breeds = array();
+	private $cat_breeds = array();
+	private $count = 0;
 	
-	public $isLoaded = FALSE;
+	private $isLoaded = FALSE;
+	
+	public function get_list($species) {
+		$this->load();
+		
+		if ($species == 'Dog') {
+			return $this->dog_breeds;
+		} else {
+			return $this->cat_breeds;
+		}
+	}
 	
 	public function __construct() {
 	}
@@ -28,7 +40,7 @@ class Breeds {
 	public function load($force = FALSE) {
 		global $petadmin_db;
 		
-		$sql = "Select breed_no, breed_spec, breed_desc, breed_shortdesc, breed_billcat from vw_breed";
+		$sql = "Select breed_no, breed_spec, breed_desc, breed_shortdesc, breed_billcat from vw_breed order by breed_desc";
 		
 		if ($this->isLoaded and ! $force) {
 			return;
@@ -49,6 +61,11 @@ class Breeds {
 			$this->count++;
 			$this->by_no[$breed->no] = $breed;
 			$this->by_short_desc[$breed->short_desc] = $breed;
+			if ($breed->spec == 'Dog') {
+				$this->dog_breeds[] = $breed;
+			} else {
+				$this->cat_breeds[] = $breed;
+			}
 		}
 		
 		$this->isLoaded = TRUE;

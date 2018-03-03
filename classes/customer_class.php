@@ -185,23 +185,29 @@ cust_telno_mobile2, cust_email, cust_nodeposit from my_customer";
   	$this->by_any[$key][] = $customer;
   }
   
-  public function get_by_no($no) {
-  	$this->load();
-    return array_key_exists($no, $this->by_no) ? $this->by_no[$no] : NULL;
-  }
+  	public function get_by_no($no) {
+	  	$this->load();
+    	return array_key_exists($no, $this->by_no) ? $this->by_no[$no] : NULL;
+  	}
 
-  public function get_by_telno($telno) {
-  	$this->load();
-  	return array_key_exists($telno, $this->by_telno) ? $this->by_telno[$telno] : NULL;
-  }
+	public function get_by_telno($telno) {
+	  	$this->load();
+	  	return array_key_exists($telno, $this->by_telno) ? $this->by_telno[$telno] : NULL;
+  	}
 
-  public function get_by_email($email) {
-  	$this->load();
-  	return array_key_exists($email, $this->by_email) ? $this->by_email[$email] : NULL;
-  }
+  	public function get_by_email($email) {
+	  	$this->load();
+	  	return array_key_exists($email, $this->by_email) ? $this->by_email[$email] : NULL;
+  	}
+  
 	public function get_by_any($any) {
 		$this->load();
 		$lc = strtolower($any);
 		return array_key_exists($lc, $this->by_any) ? $this->by_any[$lc] : NULL;
+	}
+	
+	public function get_list() {
+		$this->load();
+		return $this->by_no;
 	}
 }

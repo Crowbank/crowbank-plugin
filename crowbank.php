@@ -75,12 +75,14 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_confirmation.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_calendar.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_booking_action.php';
+	require_once CROWBANK_ABSPATH . 'shortcodes/customer_list.php';
 	
 	add_shortcode('crowbank_table', 'crowbank_table');
 	add_shortcode('crowbank_item', 'crowbank_item');
 	add_shortcode('crowbank_toggle', 'crowbank_toggle');
 	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
 	add_shortcode('crowbank_calendar', 'crowbank_calendar');
+	add_shortcode('crowbank_customer_list', 'customer_list');
 	add_shortcode('crowbank_calendar_legend', 'crowbank_calendar_legend');
 	add_shortcode('crowbank_booking_cancellation', 'crowbank_booking_cancellation');
 	add_shortcode('crowbank_booking_confirmation', 'crowbank_booking_confirmation');
@@ -94,23 +96,51 @@ function enqueue_load_fa() {
 }
 
 add_filter( 'gform_pre_render_23', 'populate_months' );
-/* add_filter( 'gform_pre_validation_23', 'populate_months' );
-add_filter( 'gform_pre_submission_filter_23', 'populate_months' );
-add_filter( 'gform_admin_pre_render_23', 'populate_months' ); */
-
 add_filter( 'gform_pre_render_23', 'populate_months' );
-/*
-add_filter( 'gform_pre_validation_23', 'populate_months' );
-add_filter( 'gform_pre_submission_filter_23', 'populate_months' );
-add_filter( 'gform_admin_pre_render_23', 'populate_months' ); */
-
 add_filter( 'gform_pre_render_25', 'populate_booking_form' );
-/*
-add_filter( 'gform_pre_validation_25', 'populate_booking_form' );
-add_filter( 'gform_pre_submission_filter_25', 'populate_booking_form' );
-add_filter( 'gform_admin_pre_render_25', 'populate_booking_form' ); */
-
 add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
+add_filter( 'gform_pre_render_27', 'populate_pet_form');
+add_action( 'gform_after_submission_27', 'pet_submission', 10, 2 );
+
+function pet_submission( $entry, $form ) {
+	global $petadmin;
+	
+	$cust_no = rgar( $entry, '1');
+	$pet_no = rgar( $entry, '14' );
+	$pet_name = rgar( $entry, '2');
+	$pet_spec = rgar( $entry, '3');
+	if ($pet_spec == 'Dog') {
+		$pet_breed = rgar( $entry, '4');
+	} else {
+		$pet_breed = rgar( $entry, '13');
+	}
+	$pet_sex = rgar( $entry, '6');
+	$pet_neutered = rgar( $entry, '7' );
+	$pet_dob = rgar( $entry, '5' );
+	$pet_vet = rgar( $entry, '8' );
+	$pet_vacc_date = rgar( $entry, '9' );
+	$pet_kc_date = rgar( $entry, '10' );
+	$pet_vacc_img = rgar( $entry, '11' );
+	$pet_comments = rgar( $entry, '12' );
+	
+	if ( $pet_no ) {
+		$msg_type = 'pet-update';
+		$pet = $petadmin->pets->by_no($pet_no);
+		$pet->update($pet_name, $pet_species, $pet_breed, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet, $pet_vacc_date, $pet_kc_date, $pet_vacc_img, $pet_comments );
+	} else {
+		$msg_type = 'pet-new';
+		$petadmin->pets->create_pet( $cust_no, $pet_name, $pet_species, $pet_breed, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet, $pet_vacc_date, $pet_kc_date, $pet_vacc_img, $pet_comments );
+	}
+	
+	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'pet_no' => $pet_no, 'pet_name' => $pet_name,
+			'pet_spec' => $pet_spec, 'pet_breed' => $pet_breed, 'pet_sex' => $pet_sex,
+			'pet_neutered' => $pet_neutered, 'pet_dob' => $pet_dob, 'pet_vet' => $pet_vet,
+			'pet_vacc_date' => $pet_vacc_date, 'pet_kc_date' => $pet_kc_date, 'pet_notes' => $pet_comments] );
+	$msg->flush();
+	
+}
 
 function time_slot_to_time($time_slot, $direction) {
 	if ($time_slot == 'am' and $direction == 'in') {
@@ -140,6 +170,108 @@ function populate_customer_details( $form ) {
 		}
 	}
 	return $form;	
+}
+
+function populate_pet_form ( $form ) {
+	global $petadmin;
+	
+	$customer = get_customer();
+	
+	$pet_no = 0;
+	$pet = null;
+	
+	if (isset( $_REQUEST['pet_no'])) {
+		$pet_no = $_REQUEST['pet_no'];
+		$pet = $petadmin->pets->get_by_no($pet_no);
+	}
+	
+	foreach( $form['fields'] as &$field ) {
+		if ( $field->label == 'Customer Number' ) {
+			$field->defaultValue = $customer->no;
+		}
+		
+		if ( $field->label == 'Vet' ) {
+			$choices = array();
+			$vets = $petadmin->vets->get_list();		
+			foreach ($vets as $vet) {
+				$selected = ($pet_no != 0 and $pet->vet->no == $vet->no);
+				$choices[] = array( 'text' => $vet->name, 'value' => $vet->no, 'isSelected' => $selected );
+			}
+			
+			$field->choices = $choices;
+		}
+		
+		if ( $field->label == 'Dog Breed' ) {
+			$choices = array();
+			
+			$breeds = $petadmin->breeds->get_list('Dog');
+			foreach ( $breeds as $breed ) {
+				$selected = (($pet_no != 0 and $pet->breed->no == $breed->no) or
+				($pet_no == 0 and $breed->no == 207));
+				if ($selected) {
+					echo $breed->desc;
+				}
+				$choices[] = array( 'text' => $breed->desc, 'value' => $breed->no, 'isSelected' => $selected );
+			}
+			
+			$field->choices = $choices;
+		}
+		
+		if ( $field->label == 'Cat Breed' ) {
+			$choices = array();
+			
+			$breeds = $petadmin->breeds->get_list('Cat');
+			foreach ( $breeds as $breed ) {
+				$selected = (($pet_no != 0 and $pet->breed->no == $breed->no) or
+				($pet_no == 0 and $breed->no == 208));
+				$choices[] = array( 'text' => $breed->desc, 'value' => $breed->no, 'isSelected' => $selected );
+			}
+			
+			$field->choices = $choices;
+		}
+		
+		if (!$pet) {
+			continue;
+		}
+		
+		if ( $field->label == 'Pet Number' ) {
+			$field->defaultValue = $pet->no;
+		}
+		
+		if ( $field->label == 'Name' ) {
+			$field->defaultValue = $pet->name;
+		}
+		
+		if ( $field->label == 'Species' ) {
+			$field->choices[0]['isSelected'] = ($pet->species == 'Dog');
+			$field->choices[1]['isSelected'] = ($pet->species == 'Cat');
+		}
+		
+		if ( $field->label == 'Dog Breed' and $pet->species == 'Dog' ) {
+			foreach ( $field->choices as $choice ) {
+				$choice['isSelected'] = ( $choice['value'] == $pet->breed->no );
+			}
+		}
+		
+		if ( $field->label == 'Sex' ) {
+			$field->choices[0] = ( $pet->sex == 'M');
+			$field->choices[1] = ( $pet->sex == 'F');
+		}
+		
+		if ( $field->label == 'Spayed/Neutered' ) {
+			$field->choices[0] = ( $pet->neutered == 'Y');
+			$field->choices[1] = ( $pet->neutered == 'N');
+		}
+		
+		
+		if ( $field->label == 'Vet' ) {
+			foreach ( $field->choices as $choice ) {
+				$choice['isSelected'] = ( $choice['value'] == $pet->vet->no );
+			}
+		}		
+	}
+	
+	return $form;
 }
 
 function populate_months( $form ) {
@@ -254,12 +386,13 @@ function crowbank_styles_and_scripts()
 	// Register the style like this for a plugin:
 	wp_register_style( 'crowbank-style', plugins_url( '/css/crowbank2.css', __FILE__ ));
 	wp_register_style( 'calendar-style', plugins_url( '/css/calendar.css', __FILE__ ));
-	//	wp_register_script( 'crowbank_alert', plugins_url( '/alert.js', __FILE__));
+	wp_register_script( 'customer_table', plugins_url( '/js/customer_table.js', __FILE__));
 	
 	// For either a plugin or a theme, you can then enqueue the style:
 	wp_enqueue_style( 'crowbank-style', false, array(), null );
 	wp_enqueue_style( 'calendar-style', false, array(), null);
-	//	wp_enqueue_script( 'crowbank_alert' );
+	wp_enqueue_script( 'customer_table', plugins_url( '/js/customer_table.js', __FILE__),
+			array(), false, true);
 }
 add_action( 'wp_enqueue_scripts', 'crowbank_styles_and_scripts' );
 

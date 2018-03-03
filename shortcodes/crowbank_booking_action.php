@@ -508,18 +508,34 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	} else if ($availability == 2) {
 		$status = 'S';
 	}
-		
-	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers, 'start_date' => $start_date->format('Ymd'),
-		'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'), 'end_time' => $end_time, 'deluxe' => $is_deluxe,
-		'comment' => $comment, 'availability' => $availability, 'cost_estimate' => $cost_estimate, 'status' => $status]);
+	
+	/*
+	 * Check for duplicate forms
+	 */
+
+	$overlapping = false;
+	
+	if (!$bk_no) {
+		$overlapping = $petadmin->bookings->find_overlapping($customer, $start_date, $end_date);
+	}
+	
+	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers,
+			'start_date' => $start_date->format('Ymd'), 'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'),
+			'end_time' => $end_time, 'deluxe' => $is_deluxe, 'comment' => $comment, 'availability' => $availability,
+			'cost_estimate' => $cost_estimate, 'status' => $status, 'overlapping' => $overlapping]);
 	
 	$msg->flush();
 	
 	if ($booking) {
-		$booking->amend_booking($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate);
+		$booking->update($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate);
 	} else {
-		$petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time,
+		if ($overlapping) {
+			$msg = 'Overlapping booking - no action';
+			echo crowbank_error($msg);
+		} else {
+			$petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time,
 				$end_date, $end_time, $is_deluxe, $comment, $status, $msg->id, $cost_estimate);
+		}
 	}
 	
 	if ($bk_no) {

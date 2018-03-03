@@ -50,6 +50,34 @@ class Pet {
 	public function description() {
 		return $this->name . ' (' . $this->breed->short_desc . ')';
 	}
+	
+	public function update($pet_name, $pet_species, $pet_breed_no, $pet_sex,
+			$pet_neutered, $pet_dob, $pet_vet_no, $pet_vacc_date, $pet_kc_date, $pet_vacc_img, $pet_comments ) {
+		global $petadmin, $petadmin_db;
+		
+		if ($pet_species == 'Dog' and $pet_kc_date and $pet_kc_date < $pet_vacc_date) {
+			$pet_vacc_date = $pet_kc_date;
+		}
+		
+		$pet_vacc_status = 'None';
+		if ($pet_vacc_date) {
+			$diff = date_diff($pet_vacc_date, new DateTime())->format('%a');
+			if ($diff < 365) {
+				$pet_vacc_status = 'Valid';
+			} else {
+				$pet_vacc_status = 'Expired';
+			}
+		}
+		
+		$sql = "update my_pet set pet_name = '" .  $pet_name . "', pet_spec_no = " . ($pet_species == 'Dog' ? 1 : 2);
+		$sql .= ", pet_breed_no = " . $pet_breed_no . ", pet_sex = '" . $pet_sex . "', pet_neutered = '" . $pet_neutered;
+		$sql .= "', pet_dob = '" . $pet_dob->format('Y-m-d') . "', pet_vet_no = " . $pet_vet_no . ", pet_vacc_status = '";
+		$sql .= $pet_vacc_status . "', pet_vacc_date = '" . $pet_vacc_date->format('Y-m-d');
+		$sql .= "', pet_notes = '" . $pet_comments . "' where pet_no = " . $pet_no;
+		
+		$petadmin_db->execute($sql);
+	}
+	
 }
 
 class Pets {
@@ -93,4 +121,29 @@ pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_vacc_date, pet_deceased 
 		return array_key_exists($no, $this->by_no) ? $this->by_no[$no] : NULL;
 	}
 	
+	public function create_pet( $cust_no, $pet_no, $pet_name, $pet_species, $pet_breed, $pet_sex,
+			$pet_neutered, $pet_dob, $pet_vet, $pet_vacc_date, $pet_kc_date, $pet_vacc_img, $pet_comments ) {
+		global $petadmin_db;
+		
+		$pet = new Pet();
+		$customer = $petadmin->customers->get_by_no($cust_no);
+		
+		$pet->no = $pet_no;
+		$pet->name = $pet_name;
+		$pet->customer = $customer;
+		$pet->species = $pet_species;
+		$pet->breed = $petadmin->breeds->get_by_no($breed_no);
+		$pet->dob = $pet_dob;
+		$pet->warning = '';
+		$pet->sex = $pet_sex;
+		$pet->neutered = $pet_neutered;
+		$vet_no = $pet_vet_no;
+		$pet->vet = $petadmin->vets->get_by_no($vet_no);
+		$pet->vacc_status = $pet_vacc_status;
+		$pet->vacc_date = $pet_vacc_date;
+		$pet->deceased = 'N';
+
+		$this->count++;
+		$this->by_no[$pet_no] = $pet;
+	}
 }

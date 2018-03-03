@@ -14,19 +14,24 @@ class Vet {
 }
 
 class Vets {
-	public $by_no = array();
-	public $by_name = array();
-	public $count = 0;
+	private $by_no = array();
+	private $by_name = array();
+	private $count = 0;
 	
-	public $isLoaded = FALSE;
+	private $isLoaded = FALSE;
 	
 	public function __construct() {
+	}
+	
+	public function get_list() {
+		$this->load();
+		return $this->by_no;
 	}
 	
 	public function load($force = FALSE) {
 		global $petadmin_db;
 		
-		$sql = "Select vet_no, vet_practice_name, vet_telno_1, vet_email from my_vet";
+		$sql = "Select vet_no, vet_practice_name, vet_telno_1, vet_email from my_vet order by vet_practice_name";
 		
 		if ($this->isLoaded and ! $force) {
 			return;
