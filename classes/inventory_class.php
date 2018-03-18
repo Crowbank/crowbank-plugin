@@ -16,7 +16,8 @@ class Inventory {
 		'inv_cat_in_am' => 'cat_in_am',
 		'inv_cat_out_am' => 'cat_out_am',
 		'inv_cat_in_pm' => 'cat_in_pm',
-		'inv_cat_out_pm' => 'cat_out_pm'
+		'inv_cat_out_pm' => 'cat_out_pm',
+		'inv_dog_day' => 'dog_day'
 	);
 	
 	public function __construct($row){
@@ -42,13 +43,16 @@ class Inventory {
 			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_am'] + $this->items['dog_out_pm'] :
 				$this->items['cat_stay'] + $this->items['cat_out_am'] + $this->items['cat_out_pm'];
 		} else if ($time == 'am') {
-			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_am'] + $this->items['dog_out_pm'] + $this->items['dog_in_am']:
+			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_am'] +
+			$this->items['dog_out_pm'] + $this->items['dog_in_am'] + $this->items['dog_day']:
 			$this->items['cat_stay'] + $this->items['cat_out_am'] + $this->items['cat_out_pm'] + $this->items['cat_in_am'];
 		} else if ($time == 'noon') {
-			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_pm'] + $this->items['dog_in_am'] :
+			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_pm'] +
+			$this->items['dog_in_am'] + $this->items['dog_day']:
 			$this->items['cat_stay'] + $this->items['cat_out_pm'] + $this->items['cat_in_am'];
 		} else if ($time == 'pm') {
-			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_pm'] + $this->items['dog_in_am'] + $this->items['dog_in_pm'] :
+			return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_out_pm'] +
+			$this->items['dog_in_am'] + $this->items['dog_in_pm'] + $this->items['dog_day']:
 			$this->items['cat_stay'] + $this->items['cat_out_pm'] + $this->items['cat_in_am'] + $this->items['cat_in_pm'];
 			} else if ($time == 'evening') {
 				return ($species == 'Dog') ? $this->items['dog_stay'] + $this->items['dog_in_am'] +	$this->items['dog_in_pm'] :
@@ -69,7 +73,7 @@ class Inventories {
 		global $petadmin_db;
 		$sql = 'Select inv_date, inv_dog_revenue, inv_cat_revenue, inv_dog_stay, inv_cat_stay, inv_visit_am, inv_visit_pm,
 inv_dog_in_am,  inv_dog_in_pm, inv_dog_out_am,  inv_dog_out_pm,
-inv_cat_in_am,  inv_cat_in_pm, inv_cat_out_am,  inv_cat_out_pm
+inv_cat_in_am,  inv_cat_in_pm, inv_cat_out_am,  inv_cat_out_pm, inv_dog_day
 from my_inventory';
 		
 		if ($this->isLoaded and !$force) {
