@@ -12,7 +12,7 @@ function customer_list($attr = [], $content = null, $tag = '') {
 	
 	$r .= '<label>Search: </label> <input id="inputfilter" type="text"></input>';
 	
-	$r .= '<table id="filterme" class="table"><thead><th></th><th>Cust #</th><th>Surname</th><th>Forename</th>';
+	$r .= '<table id="filterme" class="table table-responsive"><thead><th></th><th>Cust #</th><th>Surname</th><th>Forename</th>';
 	$r .= '<th>Pets</th><th>Email</th><th>Phone #</th></thead>';
 	$r .= '<tbody>';
 	

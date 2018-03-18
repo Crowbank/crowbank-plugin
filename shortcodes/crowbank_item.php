@@ -46,6 +46,8 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_date_link($attr);
 	elseif ($type == 'new-booking-request')
 		return crowbank_new_booking_request($attr);
+	elseif ($type == 'new-pet')
+		return crowbank_new_pet($attr);
 	else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
@@ -166,8 +168,20 @@ function crowbank_new_booking_request($attr) {
 	
 	
 	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa fa-calendar" style="padding-right: 10px"></i> New Booking Request</a>';
-
+	
 	return $r;
 }
 
+function crowbank_new_pet($attr) {
+	$customer = get_customer();
+	
+	if ( !$customer ) {
+		return crowbank_error ('No Current Customer');
+	}
+	$request_url = home_url('pet/?cust=' . $customer->no);
+	
+	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa" style="padding-right: 10px"></i> New Pet</a>';
+	
+	return $r;
+}
 

@@ -178,13 +178,14 @@ function crowbank_customer_pets($attr)
 		return crowbank_error('No customer specified');
 
 	$r = '<table class="table">';
-	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th></thead><tbody>';
+	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th><th></th></thead><tbody>';
 
 	$pets = $customer->get_pets();
 	foreach($pets as $pet) {
-		if ($pet->deceased == 'Y')
+		if ($pet->deceased == 'Y') {
 			continue;
-		
+		}
+			
 		$r .= "<tr><td>$pet->name</td>";
 		$r .= "<td>$pet->species</td>";
 		$breed_desc = $pet->breed->desc;
@@ -196,7 +197,10 @@ function crowbank_customer_pets($attr)
 		} else {
 			$vacc = $pet->vacc_status;
 		}
-		$r .= "<td>$vacc</td></tr>";
+		$r .= "<td>$vacc</td>";
+		
+		$update_url = home_url('pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
+		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a></td></tr>';
 	}
 
 

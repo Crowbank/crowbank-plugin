@@ -1,4 +1,6 @@
 jQuery(document).ready(function(){
+    jQuery("li.gf_readonly input").attr("readonly","readonly");
+
 	jQuery("#inputfilter").keyup(function(){
 		filter = new RegExp(jQuery(this).val(),'i');
 		jQuery("#filterme tbody tr").filter(function(){
