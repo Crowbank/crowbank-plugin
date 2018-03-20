@@ -90,11 +90,11 @@ class Tasks {
 			return "No Events<br>";
 		}
 		
-		$r = '<table class="table"><thead><th>Time</th><th>Event</th></thead>';
+		$r = '<div style="overflow-x:auto;"><table class="table"><thead><th>Time</th><th>Event</th></thead>';
 		foreach ($this->by_date[$date->getTimestamp()] as $task) {
 			$r .= $task->to_row();
 		}
-		$r .= '</table>';
+		$r .= '</table></div>';
 		return $r;
 	}
 }

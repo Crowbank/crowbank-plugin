@@ -96,7 +96,7 @@ class Timesheets {
 		$d6 = new DateInterval('P6D');
 		$modified = $this->modified_times[$weekstart->getTimestamp()];
 		$active = true;
-		$r = '<table class="table timesheet_table' . ($active ? ' tight_table' : '') . '">';
+		$r = '<div style="overflow-x:auto;"><table class="table timesheet_table' . ($active ? ' tight_table' : '') . '">';
 
 		$w = -1;
 
@@ -198,7 +198,7 @@ class Timesheets {
 		} while ($w < $weeks);
 
 
-		$r .= '</table>';
+		$r .= '</table></div>';
 
 		return $r;
 	}
@@ -229,7 +229,7 @@ class Timesheets {
 		
 		$shifts = $this->weekly[$key];
 		
-		$r = '<table class="table timesheet_table">';
+		$r = '<div style="overflow-x:auto;"><table class="table timesheet_table">';
 		$r .= '<tr>';
 		$r .= echo_cell('', '');
 		for($i=0; $i<7; $i++) {
@@ -329,7 +329,7 @@ class Timesheets {
 			$r .=  '</tr>';
 			$first = FALSE;
 		}
-		$r .=  '</table>';
+		$r .=  '</table></div>';
 		$r .=  'Last modified ' . $modified->format('d/m/Y H:m:s') . '<br>';
 
 		return $r;

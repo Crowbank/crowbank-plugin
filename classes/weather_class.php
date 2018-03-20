@@ -50,7 +50,7 @@ class Weather {
 		$ts = $date->getTimestamp();
 		$data = $this->data[$ts];
 		
-		$r = '<table class="table"><tr><td>Time</td>';		
+		$r = '<div style="overflow-x:auto;"><table class="table"><tr><td>Time</td>';		
 		foreach ($data as $w) {
 			$r .= '<td>' . $w['time']->format('H:i') . '</td>';
 		}
@@ -75,7 +75,7 @@ class Weather {
 			$r .= '<td>' . $w['clouds'] . '</td>';
 		}
 		
-		$r .= '</tr></table>';
+		$r .= '</tr></table></div>';
 	}
 	
 	public function weather_table_h($date) {

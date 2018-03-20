@@ -108,7 +108,7 @@ function crowbank_test($attr) {
 	if (0 == $user->ID)
 		return 'No user logged in';
 
-	$r = "<div$div_class>" . '<table class="table">
+	$r = "<div$div_class " . 'style="overflow-x:auto;"><table class="table">
 	<thead><th>Property</th><th>Value</th></thead>
 	<tbody>';
 
@@ -125,7 +125,7 @@ function crowbank_test($attr) {
 function crowbank_count_table($attr) {
 	global $petadmin;
 
-	$r = '<table class="table">
+	$r = '<div style="overflow-x:auto;"><table class="table">
 	<thead><th>Table</th><th>Rows</th></thead>
 	<tbody>';
 	
@@ -134,7 +134,7 @@ function crowbank_count_table($attr) {
 	}
 	
 	$r .= '</tbody>
-</table>';
+</table></div>';
 	return $r;
 }
 
@@ -146,7 +146,7 @@ function crowbank_customer_data($attr) {
 	if (!$customer)
 		return crowbank_error('No customer specified');
 
-	$r = '<table class="table">';
+	$r = '<div style="overflow-x:auto;"><table class="table">';
 	$r .= '<tbody><tr><td>Customer #</td><td>';
 	$r .= $customer->no . '</td></tr>';
 	$r .= '<tr><td>Name:</td><td>' . "$customer->title $customer->forename $customer->surname" . '</td></tr>';
@@ -164,7 +164,7 @@ function crowbank_customer_data($attr) {
 	}
 
 	$r .= '</td></tr><tr><td>Email:</td><td>' . $customer->email . '</td></tr>';
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -178,7 +178,7 @@ function crowbank_customer_pets($attr)
 	if (!$customer)
 		return crowbank_error('No customer specified');
 
-	$r = '<table class="table">';
+	$r = '<div style="overflow-x:auto;"><table class="table">';
 	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th><th></th></thead><tbody>';
 
 	$pets = $customer->get_pets();
@@ -206,7 +206,7 @@ function crowbank_customer_pets($attr)
 
 
 
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -241,7 +241,7 @@ function crowbank_customer_bookings($attr) {
 		uasort($bookings, function($a, $b) { return $b->start_date->getTimestamp() - $a->start_date->getTimestamp(); });
 
 		$r .=  "<h2>$title</h2>";
-		$r .= '<table class="table">';
+		$r .= '<div style="overflow-x:auto;"><table class="table">';
 		$r .= '<thead><th>Booking #</th><th>Start Date</th><th>End Date</th><th style="width: 300px;">Pets</th>
 <th>Gross Amount</th><th>Paid Amount</th><th>Balance</th><th>Status</th><th></th><th></th><th></th></thead>';
 		$r .= '<tbody>';
@@ -305,7 +305,7 @@ function crowbank_customer_bookings($attr) {
 			
 			$r .= "</td></tr>";
 		}
-		$r .= '</tbody></table>';
+		$r .= '</tbody></table></div>';
 	}
 	return $r;
 }
@@ -315,7 +315,7 @@ function crowbank_employee_list($attr) {
 
 	$current = $petadmin->employees->current;
 
-	$r = '<table class="table">
+	$r = '<div style="overflow-x:auto;"><table class="table">
 <thead><th>No.</th><th>Forename</th><th>Surname</th><th>Nickname</th><th>Start Date</th><th>Rank</th><th>Email</th><th>Facebook</th><th>Mobile</th></thead>
 <tbody>';
 
@@ -331,7 +331,7 @@ function crowbank_employee_list($attr) {
 		$r .= "<td>" . $employee->start_date->format('d/m/Y') . "</td>" . "<td>$employee->rank</td>";
 		$r .= "<td>$employee->email</td><td><a href=" . '"http://www.facebook.com/' . $employee->facebook . '">' . $employee->facebook . "</a></td><td>$employee->mobile</td></tr>";
 	}
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -394,7 +394,7 @@ function crowbank_workers($attr) {
 	$shifts = $petadmin->timesheets->weekly[$weekstart->getTimestamp()];
 	uasort($shifts, function($a, $b) { return $a->employee->order - $b->employee->order; });
 
-	$r = '<table class="table">';
+	$r = '<div style="overflow-x:auto;"><table class="table">';
 	foreach ($shifts as $nickname => $shift) {
 		if ($shift->employee->rank == 'Owner') {
 			continue;
@@ -428,7 +428,7 @@ function crowbank_workers($attr) {
 		}
 	}
 
-	$r .= '</table>';
+	$r .= '</table></div>';
 
 	return $r;
 }
@@ -465,7 +465,7 @@ function in_table($bookings, $species) {
 	if (!$bookings) {
 		return '<div>No incoming ' . $species . 's</div>';
 	}
-	$r = '<table class = "table">
+	$r = '<div style="overflow-x:auto;"><table class = "table">
 <thead><th>Bk #</th><th>Time</th><th>Surname</th><th>' . $species . '(s)</th></thead><tbody>';
 	foreach ($bookings as $booking) {
 		if (($species == 'Dog' and !$booking->has_dogs) or ($species == 'Cat' and !$booking->has_cats)) {
@@ -495,7 +495,7 @@ function in_table($bookings, $species) {
 		}
 		$r .= "</td></tr>";
 	}
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -504,7 +504,7 @@ function out_table($bookings, $species) {
 	if (!$bookings) {
 		return '<div>No outgoing ' . $species . 's</div>';
 	}
-	$r = '<table class = "table">
+	$r = '<div style="overflow-x:auto;"><table class = "table">
 <thead><th>Bk #</th><th>Time</th><th>Surname</th><th>' . $species . '(s)</th></thead><tbody>';
 
 	foreach ($bookings as $booking) {
@@ -536,7 +536,7 @@ function out_table($bookings, $species) {
 		$due = $booking->gross_amt - $booking->paid_amt;
 		$r .= "</td></tr>";
 	}
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -551,7 +551,7 @@ function crowbank_availability($attr) {
 	$title = ($species == 'Dog') ? 'Kennel' : 'Cattery';
 	$capacity = ($species == 'Dog') ? 35 : 15;
 	
-	$r = '<table class="table">';
+	$r = '<div style="overflow-x:auto;"><table class="table">';
 	$r .= '<thead><th>Time</th><th>Occupied</th><th>Available</th><th>Ins</th><th>Outs</th></thead>';
 	$r .= '<tbody>';
 	$r .= '<tr><td>Morning</td><td>' . $inventory->occupied('morning', $species) . '</td>';
@@ -572,7 +572,7 @@ function crowbank_availability($attr) {
 	$r .= '<tr><td>Evening</td><td>' . $inventory->occupied('evening', $species) . '</td>';
 	$r .= '<td>' . ($capacity - $inventory->occupied('evening', $species)) . '</td>';
 	$r .= '<td></td><td></td></tr>';
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -585,7 +585,7 @@ function crowbank_employee_data($attr) {
 	if (!$employee)
 		return crowbank_error('No employee specified');
 
-	$r = '<table class="table">';
+	$r = '<div style="overflow-x:auto;"><table class="table">';
 	$r .= '<tbody><tr><td>Name:</td><td>';
 	$r .= $employee->forename . ' ' . $employee->surname . '</td></tr>';
 	$r .= '<tr><td>Start Date:</td><td>' . $employee->start_date->format('d/m/Y') . '</td></tr>';
@@ -593,7 +593,7 @@ function crowbank_employee_data($attr) {
 	$r .= '<tr><td>Email:</td><td>' . $employee->email . '</td></tr>';
 	$r .= '<tr><td>Facebook:</td><td>' . '<a href="http://www.facebook.com/' . $employee->facebook . '">' . $employee->facebook . '</a></td></tr>';
 	$r .= '<tr><td>Mobile:</td><td>' . $employee->mobile . '</td></tr>';
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 
 	return $r;
 }
@@ -649,7 +649,7 @@ function crowbank_pet_inventory($attr) {
 		return crowbank_error('No pet inventory information found for ' . $date->format('d/m/Y'));
 	}
 
-	$r = '<table class="table" style="border: solid 1px; "><thead style="text-align: left; font-weight: bold; "><th style="width: 80px;">Run</th><th style="width: 60px;">Bk #</th>
+	$r = '<div style="overflow-x:auto;"><table class="table" style="border: solid 1px; "><thead style="text-align: left; font-weight: bold; "><th style="width: 80px;">Run</th><th style="width: 60px;">Bk #</th>
 <th style="width: 60px;">From</th><th style="width: 60px;">To</th><th style="width: 150px;">Surname</th><th style="width: 150px;">Pets</th>
 <th style="width: 100px;">In/Out</th></thead><tbody>';
 
@@ -676,6 +676,6 @@ function crowbank_pet_inventory($attr) {
 		}
 	}
 
-	$r .= '</tbody></table>';
+	$r .= '</tbody></table></div>';
 	return $r;
 }
