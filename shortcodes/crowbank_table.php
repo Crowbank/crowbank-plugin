@@ -17,7 +17,8 @@ const STATUS_ARRAY = array(
 const RANKCLASS = array(
 		'Shift Leader' => 'supervisor_class',
 		'Kennel Assistant' => 'assistant_class',
-		'Dog Walker' => 'walker_class'
+		'Dog Walker' => 'walker_class',
+		'Volunteer' => 'volunteer_class'
 );
 
 function crowbank_table($attr = [], $content = null, $tag = '') {
