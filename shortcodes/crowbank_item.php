@@ -48,6 +48,8 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_new_booking_request($attr);
 	elseif ($type == 'new-pet')
 		return crowbank_new_pet($attr);
+	elseif ($type == 'test-message')
+		return crowbank_test_message($attr);
 	else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
@@ -185,3 +187,10 @@ function crowbank_new_pet($attr) {
 	return $r;
 }
 
+function crowbank_test_message($attr) {
+	$msg = new Message( 'test-message', ['value' => 'Test Value'] );
+	
+	$result = $msg->send();
+	
+	echo 'Sent message, result: ' . $result . '<br>';
+}

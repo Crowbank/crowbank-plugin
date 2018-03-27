@@ -46,4 +46,37 @@ class Message {
 		$this->status = 'open';
 		$wpdb->update('crwbnk_messages', ['msg_status' => $this->status], ['msg_id' => $this->id]);
 	}
+	
+	public function send() {
+		$meta = array();
+		
+		foreach ($this->meta as $kind=>$value) {
+			$meta[$kind] = $value;
+		}
+		
+		$msg = array('msg_id' => $this->id,
+				'msg_src' => $_SERVER['HTTP_HOST'],
+				'msg_type' => $this->type,
+				'msg_status' => $this->status,
+				'msg_meta' => $meta
+		);
+		
+		$msg_str = json_encode($msg);
+		
+		$ch = curl_init('http://crowbank.mywire.org/local_api/send_message.php');
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $msg_str);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type: application/json',
+				'Content-Length: ' . strlen($msg_str))
+				);
+		
+		$result = curl_exec($ch);
+		
+		$log_msg = sprintf('Sent msg #%d, type %s, result: %s', $this->id, $this->type, $result);
+		crowbank_log($log_msg);
+		
+		return $result;
+	}
 }
