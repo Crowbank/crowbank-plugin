@@ -57,6 +57,10 @@ class Pet {
 		return $this->name . ' (' . $this->breed->short_desc . ')';
 	}
 	
+	public function home_url() {
+		return home_url("pet/?pet_no=$this->no&cust=$this->customer->no");
+	}
+	
 	public function update($pet_name, $pet_species, $pet_breed_no, $pet_sex,
 			$pet_neutered, $pet_dob, $pet_vet_no, $vc_img, $pet_notes ) {
 		global $petadmin, $petadmin_db;
