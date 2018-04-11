@@ -138,9 +138,9 @@ function pet_submission( $entry, $form ) {
 	
 	if ( $pet_no ) {
 		$pet = $petadmin->pets->get_by_no($pet_no);
-		$pet->update($pet_name, $pet_spec, $pet_breed_no, $pet_sex,
+		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
 				$pet_neutered, $pet_dob, $pet_vet_no, $pet_vacc_img, $pet_comments );
-	} else {	
+	} else {
 		$petadmin->pets->create_pet( $cust_no, $msg->no, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
 				$pet_neutered, $pet_dob, $pet_vet_no, $pet_vacc_img, $pet_comments );
 		$pet_no = -$msg->no;
