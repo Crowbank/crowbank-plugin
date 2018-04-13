@@ -295,6 +295,16 @@ function populate_pet_form ( $form ) {
 		if ( $field->label == 'Vacc Status' ) {
 			$field->defaultValue = $pet->vacc_status;
 		}
+		
+		if ( $field->label == 'Vaccination Card' ) {
+			if ( $pet->vacc_path ) {
+				$field->content = '<iframe src="http://docs.google.com/gview?url=http://dev.crowbankkennels.co.uk/vaccinations/';
+				$field->content .= $pet->vacc_path;
+				$field->content .= '&embedded=true" style="width:100%;" frameborder="0"></iframe>';
+			} else {
+				$field->content = 'No Card on File<br>';
+			}
+		}
 	}
 	
 	return $form;

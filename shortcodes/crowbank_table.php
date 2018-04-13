@@ -526,12 +526,13 @@ function out_table($bookings, $species) {
 		$r .= '">' . $booking->customer->surname . "</a></td><td>";
 		foreach ($booking->pets as $pet) {
 			if ($pet->species == $species) {
+				$r .= '<a href="' . $pet->home_url() . '">';
 				$breed = $pet->breed->desc;
 				$r .= "$pet->name";
 				if ($species == 'Dog') {
 					$r .= " ($breed)";
 				}
-				$r .= "<br>";
+				$r .= "</a><br>";
 			}
 		}
 		$due = $booking->gross_amt - $booking->paid_amt;

@@ -40,6 +40,7 @@ class Pet {
 			$this->kc_date = new DateTime($row['pet_kc_date']);
 			$this->deceased = $row['pet_deceased'];
 			$this->notes = $row['pet_notes'];
+			$this->vacc_path = $row['pet_vacc_path'];
 			
 			if (!$this->customer) {
 				echo "Could not find customer #$cust_no for pet #$this->no<br>";
@@ -58,7 +59,7 @@ class Pet {
 	}
 	
 	public function home_url() {
-		return home_url("pet/?pet_no=$this->no&cust=$this->customer->no");
+		return home_url("pet/?pet_no=" . $this->no . "&cust=" . $this->customer->no);
 	}
 	
 	public function update($pet_name, $pet_species, $pet_breed_no, $pet_sex,
@@ -92,7 +93,7 @@ class Pets {
 		global $petadmin_db, $petadmin;
 		$sql = "Select pet_no, pet_name, pet_cust_no, pet_spec, pet_breed_no, pet_dob, 
 pet_warning, pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_kc_date, 
-pet_vacc_date, pet_deceased, pet_notes from vw_pet";
+pet_vacc_date, pet_deceased, pet_notes, pet_vacc_path from vw_pet";
 		
 		if ($this->isLoaded and ! $force) {
 			return;
