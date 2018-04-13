@@ -27,7 +27,8 @@ function crowbank_table($attr = [], $content = null, $tag = '') {
 	$attr = array_change_key_case((array)$attr, CASE_LOWER);
 
 	$attr = shortcode_atts([ 'type' => 'count', 'class' => '', 'cust_no' => 0, 'emp_no' => 0, 'title' => '',
-		'time' => 'future', 'function' => 'work', 'spec' => 'Dog', 'direction' => 'in'], $attr, $tag);
+		'time' => 'future', 'function' => 'work', 'spec' => 'Dog', 'direction' => 'in',
+		'weeks' => 4], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');
@@ -604,6 +605,7 @@ function crowbank_employee_timesheets($attr) {
 	global $petadmin;
 
 	$employee = $attr['emp'];
+	$weeks = $attr['weeks'];
 
 	if (!$employee)
 		return crowbank_error('No employee specified');
@@ -623,7 +625,7 @@ function crowbank_employee_timesheets($attr) {
 	
 	$r .= '<form method="post" action="' . get_permalink() . '">';
 	
-	$r .= $petadmin->timesheets->display_employee($employee, $weekstart, 4, $post, $overrides);
+	$r .= $petadmin->timesheets->display_employee($employee, $weekstart, $weeks, $post, $overrides);
 
 	$r .= '<input type="hidden" name="emp" value="' . $employee->nickname . '">';
 	
