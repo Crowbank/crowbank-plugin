@@ -28,7 +28,7 @@ function crowbank_table($attr = [], $content = null, $tag = '') {
 
 	$attr = shortcode_atts([ 'type' => 'count', 'class' => '', 'cust_no' => 0, 'emp_no' => 0, 'title' => '',
 		'time' => 'future', 'function' => 'work', 'spec' => 'Dog', 'direction' => 'in',
-		'weeks' => 21], $attr, $tag);
+		'weeks' => 20], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');

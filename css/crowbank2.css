@@ -244,6 +244,14 @@ table th[class*="col-"] {
   font-style: italic;
 }
 
+.owner_class {
+  background-color: #00FF00;
+}
+
+.office_class {
+  background-color: #56c5d0
+}
+
 .supervisor_class {
   background-color: #00FF00;
 }

@@ -69,6 +69,8 @@ class Timesheets {
 	public $count = 0;
 
 	const RANKCLASS = array(
+		'Owner' => 'owner_class',
+		'O' => 'office_class',
 		'Shift Leader' => 'supervisor_class',
 		'Kennel Assistant' => 'assistant_class',
 		'Dog Walker' => 'walker_class',
