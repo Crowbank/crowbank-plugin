@@ -63,17 +63,22 @@ class Pet {
 	}
 	
 	public function update($pet_name, $pet_species, $pet_breed_no, $pet_sex,
-			$pet_neutered, $pet_dob, $pet_vet_no, $vc_img, $pet_notes ) {
+			$pet_neutered, $pet_dob, $pet_vet_no, $pet_notes, $add_vacc_file ) {
 		global $petadmin, $petadmin_db;
 		
 		if ( $this->vacc_status <> 'None' and $vc_img ) {
 			$this->vacc_status = 'Unconfirmed';
 		}
 		
+		if ( $add_vacc_file ) {
+			$vacc_path_sql = ", pet_vacc_path = '" . $this->no . ".pdf'";
+		} else {
+			$vacc_path_sql = '';
+		}
 		$sql = "update my_pet set pet_name = '" .  $pet_name . "', pet_spec_no = " . ($pet_species == 'Dog' ? 1 : 2);
 		$sql .= ", pet_breed_no = " . $pet_breed_no . ", pet_sex = '" . $pet_sex . "', pet_neutered = '" . $pet_neutered;
-		$sql .= "', pet_dob = '" . $pet_dob . "', pet_vet_no = " . $pet_vet_no . ", pet_vacc_status = '";
-		$sql .= $pet_vacc_status . "', pet_notes = '" . $pet_comments . "' where pet_no = " . $this->no;
+		$sql .= "', pet_dob = '" . $pet_dob . "', pet_vet_no = " . $pet_vet_no . $vacc_path_sql;
+		$sql .= ", pet_notes = '" . $pet_notes . "' where pet_no = " . $this->no;
 		
 		$petadmin_db->execute($sql);
 	}
@@ -123,13 +128,15 @@ pet_vacc_date, pet_deceased, pet_notes, pet_vacc_path from vw_pet";
 	}
 	
 	public function create_pet( $cust_no, $msg_no, $pet_name, $pet_species, $pet_breed_no, $pet_sex,
-			$pet_neutered, $pet_dob, $pet_vet_no, $vc_img, $pet_comments ) {
+			$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_path ) {
 		global $petadmin_db, $petadmin;
 
-		if ( $vc_img ) {
+		if ( $add_vacc_path ) {
 			$vacc_status = 'Unconfirmed';
+			$vacc_path = '-' . $msg_no . '.pdf';
 		} else {
 			$vacc_status = 'None';
+			$vacc_path = '';
 		}
 		
 		$pet = new Pet();
@@ -152,11 +159,11 @@ pet_vacc_date, pet_deceased, pet_notes, pet_vacc_path from vw_pet";
 		$this->by_no[$pet->no] = $pet;
 				
 		$sql = "insert into my_pet (pet_no, pet_cust_no, pet_name, pet_spec_no, pet_breed_no, pet_dob, ";
-		$sql .= "pet_warning, pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_deceased)";
+		$sql .= "pet_warning, pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_deceased, pet_vacc_path)";
 		$sql .= " values (" . -$msg_no . ", " . $cust_no . ", '" . $pet_name . "', ";
 		$sql .= ($pet_species == 'Dog' ? 1 : 2) . ", " . $pet_breed_no . ", '" . $pet_sex . "', '";
 		$sql .= $pet_neutered . "', '" . $pet_dob . "', " . $pet_vet_no . ", ";
-		$sql .= $vacc_status .  "', '" . $pet_comments . "')";
+		$sql .= $vacc_status .  "', '" . $pet_comments . "', '" . $vacc_path . "')";
 		
 		$petadmin_db->execute( $sql );
 	}

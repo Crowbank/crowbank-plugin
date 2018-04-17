@@ -95,6 +95,13 @@ function enqueue_load_fa() {
 	wp_enqueue_style( 'load-fa', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css' );
 }
 
+// add_filter( 'itsg_gf_ajaxupload_filename', 'my_itsg_gf_ajaxupload_filename', 10, 7 );
+// function my_itsg_gf_ajaxupload_filename( $name, $file_path, $size, $type, $error, $index, $content_range ) {
+// 	$field_id = isset( $_POST['field_id'] ) ? $_POST['field_id'] : null; // get the field_id out of the post
+// 	$file_extension = pathinfo( $name, PATHINFO_EXTENSION );  // get the file type out of the URL
+// 	$name = 'FileOfField' . $field_id . '.' . $file_extension; // put it together
+// 	return $name; // now return the new name
+// }
 add_filter( 'gform_pre_render_23', 'populate_months' );
 add_filter( 'gform_pre_render_23', 'populate_months' );
 add_filter( 'gform_pre_render_25', 'populate_booking_form' );
@@ -118,39 +125,62 @@ function pet_submission( $entry, $form ) {
 	$pet_neutered = rgar( $entry, '7' );
 	$pet_dob = rgar( $entry, '5' );
 	$pet_vet_no = rgar( $entry, '8' );
-	$pet_vacc_date = rgar( $entry, '9' );
-	$pet_kc_date = rgar( $entry, '10' );
-	$pet_vacc_img = rgar( $entry, '11' );
+#	$pet_vacc_date = rgar( $entry, '9' );
+#	$pet_kc_date = rgar( $entry, '10' );
 	$pet_comments = rgar( $entry, '12' );
-	
 	if ( $pet_no ) {
 		$msg_type = 'pet-update';
 	} else {
 		$msg_type = 'pet-new';
 	}
 	
-	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'pet_no' => $pet_no, 'pet_name' => $pet_name,
-			'pet_spec' => $pet_spec, 'pet_breed_no' => $pet_breed_no, 'pet_sex' => $pet_sex,
-			'pet_neutered' => $pet_neutered, 'pet_dob' => $pet_dob, 'pet_vet_no' => $pet_vet_no,
-			'pet_notes' => $pet_comments] );
-	
-	$msg->flush();
+	$pet = null;
+	$add_vacc_file = 0;
 	
 	if ( $pet_no ) {
 		$pet = $petadmin->pets->get_by_no($pet_no);
-		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
-				$pet_neutered, $pet_dob, $pet_vet_no, $pet_vacc_img, $pet_comments );
-	} else {
-		$petadmin->pets->create_pet( $cust_no, $msg->no, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
-				$pet_neutered, $pet_dob, $pet_vet_no, $pet_vacc_img, $pet_comments );
-		$pet_no = -$msg->no;
+	}
+
+	if ( !empty( $entry[17] ) ) {
+		$add_vacc_file = 1;
+	}
+
+	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'pet_no' => $pet_no, 'pet_name' => $pet_name,
+			'pet_spec' => $pet_spec, 'pet_breed_no' => $pet_breed_no, 'pet_sex' => $pet_sex,
+			'pet_neutered' => $pet_neutered, 'pet_dob' => $pet_dob, 'pet_vet_no' => $pet_vet_no,
+			'pet_notes' => $pet_comments, 'add_vacc_file' => $add_vacc_file ] );
+	
+	$msg->flush();
+	
+	if ( !$pet_no ) {
+		$pet_no = -$msg->id;
 	}
 	
-	if ($pet_vacc_img) {
-		$sql = "insert into my_pet_vacc ( pv_pet_no, pv_img, pv_status ) values ";
-		$sql .= "( " . $pet_no . ", '" . $pet_vacc_img . ", 'open')";
+	if ( !empty( $entry[17] ) ) {
+		$form_id = 27;
 		
-		$petadmin_db->execute($sql);
+		$upload_path = GFFormsModel::get_upload_path( $form_id );
+		$upload_url = GFFormsModel::get_upload_url( $form_id );
+
+		$file_url = unserialize($entry[17])[0][''];
+		$pet_vacc_img = str_replace( $upload_url, $upload_path, $file_url);
+				
+		if ( $pet and $pet->vacc_path ) {
+			$renamed = str_replace('.pdf', '.old.pdf', $pet->vacc_path);
+			rename(VACC_FOLDER . $pet->vacc_path, VACC_FOLDER . $renamed);
+		}
+		
+		copy($pet_vacc_img, VACC_FOLDER . $pet_no . '.pdf');
+		$add_vacc_file = 1;
+	}
+	
+	if ( $pet_no > 0 ) {
+		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
+	} else {
+		$petadmin->pets->create_pet( $cust_no, $msg->id, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
+		$pet_no = -$msg->no;
 	}
 }
 
