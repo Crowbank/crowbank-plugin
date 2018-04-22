@@ -20,7 +20,7 @@ class Breeds {
 	private $by_short_desc = array();
 	private $dog_breeds = array();
 	private $cat_breeds = array();
-	private $count = 0;
+	public $count = 0;
 	
 	private $isLoaded = FALSE;
 	

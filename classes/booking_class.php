@@ -248,6 +248,7 @@ class Bookings {
 	
 	public function load($force = FALSE) {
 		global $petadmin_db, $petadmin;
+		
 		$sql = "Select bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time,
 bk_end_time, bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe
 from my_booking";
@@ -301,11 +302,16 @@ from my_booking";
 			$checkin = $row['bi_checkin_time'];
 			$checkout = $row['bi_checkout_time'];
 			$booking = array_key_exists($bk_no, $this->by_no) ? $this->by_no[$bk_no] : NULL;
-			$pet = $petadmin->pets->get_by_no($pet_no);
-			if ($booking) {
-				$booking->add_pet($pet, $checkin, $checkout);
-				$pet->add_booking($booking);
+			try {
+				$pet = $petadmin->pets->get_by_no($pet_no);
+				if ($booking) {
+					$booking->add_pet($pet, $checkin, $checkout);
+					$pet->add_booking($booking);
+				}
+			} catch(Exception $e) {
+				crowbank_error($e->getMessage());
 			}
+			
 		}
 		
 		$this->isLoaded = TRUE;

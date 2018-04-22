@@ -16,7 +16,7 @@ class Vet {
 class Vets {
 	private $by_no = array();
 	private $by_name = array();
-	private $count = 0;
+	public $count = 0;
 	
 	private $isLoaded = FALSE;
 	
