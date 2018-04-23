@@ -15,32 +15,6 @@ require_once "weather_class.php";
 require_once "petinventory_class.php";
 require_once "message_class.php";
 
-function crowbank_log($msg, $severity = 0) {
-	global $wpdb, $crowbank_session;
-	
-	if (!$wpdb)
-		return;
-	
-	$trace = debug_backtrace();
-	$t1 = $trace[1];
-	if (isset($t1['file'])) {
-		$f = $t1['file'];
-		$file = basename($f);
-	} else {
-		$file = 'unknown';
-	}
-	if (isset($t1['line'])) {
-		$line = $t1['line'];
-	}
-	else {
-		$line = 0;
-	}
-	
-	$code = $wpdb->insert('crwbnk_log', array('log_file' => $file, 'log_line' => $line, 'log_msg' => $msg, 'log_session' => $crowbank_session, 'log_severity' => $severity),
-			array('%s', '%s', '%s', '%d'));
-}
-
-
 function fetch_or_load_petadmin() {
 	global $petadmin, $database;
 	
