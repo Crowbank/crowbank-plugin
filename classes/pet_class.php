@@ -109,7 +109,7 @@ pet_vacc_date, pet_deceased, pet_notes, pet_vacc_path from vw_pet";
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading pets');
+		petadmin_log('Loading pets');
 		
 		$result = $petadmin_db->execute($sql);
 		

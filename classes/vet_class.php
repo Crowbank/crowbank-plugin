@@ -43,7 +43,7 @@ class Vets {
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading vets');
+		petadmin_log('Loading vets');
 		$result = $petadmin_db->execute($sql);
 		
 		foreach($result as $row) {

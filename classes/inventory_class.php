@@ -85,7 +85,7 @@ from my_inventory';
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading inventories');
+		petadmin_log('Loading inventories');
 		$result = $petadmin_db->execute($sql);
 		foreach ($result as $row) {
 			$inventory = new Inventory($row);

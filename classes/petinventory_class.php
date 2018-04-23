@@ -62,7 +62,7 @@ class PetInventories {
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading petinventories');
+		petadmin_log('Loading petinventories');
 		
 		$result = $petadmin_db->execute($sql);
 		foreach ($result as $row) {

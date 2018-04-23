@@ -19,7 +19,7 @@ class Availability {
 			$runs = array();
 		}
 		
-		crowbank_log('Loading availability');
+		petadmin_log('Loading availability');
 		
 		$sql = "select ra_date, ra_spec, ra_rt_desc, ra_availability from my_availability";
 		

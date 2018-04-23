@@ -55,7 +55,7 @@ emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobi
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading employees');
+		petadmin_log('Loading employees');
 		
 		$result = $petadmin_db->execute($sql);
 		

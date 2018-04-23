@@ -149,7 +149,7 @@ cust_telno_mobile2, cust_email, cust_nodeposit from my_customer";
       $this->count = 0;
     }
 
-    crowbank_log('Loading customers');
+    petadmin_log('Loading customers');
     $result = $petadmin_db->execute($sql);
 
     foreach($result as $row) {

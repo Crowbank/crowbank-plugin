@@ -267,7 +267,7 @@ from my_booking";
 		$petadmin->customers->load();
 		$petadmin->pets->load();
 		
-		crowbank_log('Loading bookings');
+		petadmin_log('Loading bookings');
 		$result = $petadmin_db->execute($sql);
 		
 		foreach($result as $row) {

@@ -52,7 +52,7 @@ class Breeds {
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading breeds');
+		petadmin_log('Loading breeds');
 		
 		$result = $petadmin_db->execute($sql);
 		

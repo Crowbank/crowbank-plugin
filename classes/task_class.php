@@ -65,7 +65,7 @@ class Tasks {
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading tasks');
+		petadmin_log('Loading tasks');
 		$result = $petadmin_db->execute($sql);
 		
 		foreach($result as $row) {

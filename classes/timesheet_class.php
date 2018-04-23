@@ -218,7 +218,7 @@ class Timesheets {
 		for ($i=0; $i<7; $i++) {
 			$inventories[$i] = $petadmin->inventory->get($date);
 			if (!$inventories[$i]) {
-				crowbank_log('No inventory for ' . $date->format('d/m/Y'), 3);
+				petadmin_log('No inventory for ' . $date->format('d/m/Y'), 3);
 			}
 			$date->add($day);
 		}
@@ -279,7 +279,7 @@ class Timesheets {
 		$r .= echo_cell('', 'topleft_header');
 		for($i=0; $i<7; $i++) {
 			if (!$inventories[$i]->date) {
-				crowbank_log('no date for inventories[' . $i . ']');
+				petadmin_log('no date for inventories[' . $i . ']');
 			} else {
 				$r .=  '<td colspan="2" class="date_header"><a href="daily?date=' . $inventories[$i]->date->format('Y-m-d'). '">' . $inventories[$i]->date->format('d/m/Y') . '</a></td>';
 			}
@@ -290,7 +290,7 @@ class Timesheets {
 		$r .= echo_cell('', 'centerleft_header');
 		for($i=0; $i<7; $i++) {
 			if (!$inventories[$i]->date) {
-				crowbank_log('no date for inventories[' . $i . ']');
+				petadmin_log('no date for inventories[' . $i . ']');
 			} else {
 				$r .=  '<td colspan="2" class="day_header">' . $inventories[$i]->date->format('l') . '</td>';
 			}
@@ -358,7 +358,7 @@ class Timesheets {
 			$this->count = 0;
 		}
 		
-		crowbank_log('Loading timesheets');
+		petadmin_log('Loading timesheets');
 		
 		$result = $petadmin_db->execute($sql);
 

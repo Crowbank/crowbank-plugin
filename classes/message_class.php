@@ -75,7 +75,7 @@ class Message {
 		$result = curl_exec($ch);
 		
 		$log_msg = sprintf('Sent msg #%d, type %s, result: %s', $this->id, $this->type, $result);
-		crowbank_log($log_msg);
+		petadmin_log($log_msg);
 		
 		return $result;
 	}
