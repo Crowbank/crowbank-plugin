@@ -341,6 +341,11 @@ class Timesheets {
 	public function __construct() {
 	}
 	
+	public function owner_holiday( $date ) {
+			
+		
+	}
+	
 	public function load($force = FALSE) {
 		global $petadmin_db;
 		

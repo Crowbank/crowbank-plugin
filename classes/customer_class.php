@@ -34,7 +34,69 @@ class Customer {
     $this->email = strtolower(trim($row['cust_email']));
     $this->nodeposit = (int) $row['cust_nodeposit'];
   }
+  
+  public function return_field($field_name) {
+  	switch ( $field_name ) {
+  		case 'cust_no':
+  			return $this->no;
+  		case 'cust_title':
+  			return $this->title;
+  		case 'cust_surname':
+  			return $this->surname;
+  		case 'cust_forename':
+  			return $this->forename;
+  		case 'cust_addr1':
+ 			return $this->addr1;
+  		case 'cust_addr3':
+  			return $this->addr3;
+  		case 'cust_postcode':
+  			return $this->postcode;
+  		case 'cust_telno_home':
+  			return $this->telno_home;
+  		case 'cust_telno_mobile':
+  			return $this->telno_mobile;
+  		case 'cust_telno_mobile2':
+  			return $this->telno_mobile2;
+  		case 'cust_email':
+  			return $this->email;
+  		case 'cust_nodeposit':
+  			return $this->nodeposit;
+  		default:
+  			return null;
+  			
+  	}
+  }
 
+  public function update_changes( $changes ) {
+  	global $petadmin_db;
+  	
+  	$sql = "update my_customer set ";
+  	$first = true;
+  	
+  	foreach ( $changes as $k => $v ) {
+  		if (!$first) {
+  			$sql .= ', ';
+  		}
+  		$sql .= $k . " = '" . $v . "'";
+  		$first = false;
+  	}
+  	$sql .= ' where cust_no = ' . $this->no;
+  	$petadmin_db->execute($sql);
+  }
+  
+  public function update( $cust_forename, $cust_surname, $cust_addr1, $cust_addr3, $cust_postcode,
+  		$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2, $cust_email ) {
+  	global $petadmin, $petadmin_db;
+  	
+  	$sql = "update my_customer set cust_forename = '" .  $cust_forename . "', cust_surname = '";
+  	$sql .= $cust_surname . "', cust_addr1 = '" . $cust_addr1 . "', cust_addr3 = '" . $cust_addr3;
+  	$sql .= "', cust_postcode = '" . $cust_postcode . "', cust_telno_home = '" . $cust_telno_home;
+  	$sql .= "', cust_telno_mobile = '" . $cust_telno_mobile . "', cust_telno_mobile2 = '" . $cust_telno_mobile2;
+  	$sql .= "', cust_email = '" . $cust_email . "' where cust_no = " . $this->no;
+  	
+  	$petadmin_db->execute($sql);
+  }
+  
   public function get_pets() {
   	global $petadmin;
   	

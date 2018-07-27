@@ -105,87 +105,6 @@ function enqueue_load_fa() {
 // 	$name = 'FileOfField' . $field_id . '.' . $file_extension; // put it together
 // 	return $name; // now return the new name
 // }
-add_filter( 'gform_pre_render_23', 'populate_months' );
-add_filter( 'gform_pre_render_23', 'populate_months' );
-add_filter( 'gform_pre_render_25', 'populate_booking_form' );
-add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
-add_filter( 'gform_pre_render_27', 'populate_pet_form');
-add_action( 'gform_after_submission_27', 'pet_submission', 10, 2 );
-
-function pet_submission( $entry, $form ) {
-	global $petadmin, $petadmin_db;
-	
-	$cust_no = rgar( $entry, '1');
-	$pet_no = rgar( $entry, '14' );
-	$pet_name = rgar( $entry, '2');
-	$pet_spec = rgar( $entry, '3');
-	if ($pet_spec == 'Dog') {
-		$pet_breed_no = rgar( $entry, '4');
-	} else {
-		$pet_breed_no = rgar( $entry, '13');
-	}
-	$pet_sex = rgar( $entry, '6');
-	$pet_neutered = rgar( $entry, '7' );
-	$pet_dob = rgar( $entry, '5' );
-	$pet_vet_no = rgar( $entry, '8' );
-#	$pet_vacc_date = rgar( $entry, '9' );
-#	$pet_kc_date = rgar( $entry, '10' );
-	$pet_comments = rgar( $entry, '12' );
-	if ( $pet_no ) {
-		$msg_type = 'pet-update';
-	} else {
-		$msg_type = 'pet-new';
-	}
-	
-	$pet = null;
-	$add_vacc_file = 0;
-	
-	if ( $pet_no ) {
-		$pet = $petadmin->pets->get_by_no($pet_no);
-	}
-
-	if ( !empty( $entry[17] ) ) {
-		$add_vacc_file = 1;
-	}
-
-	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'pet_no' => $pet_no, 'pet_name' => $pet_name,
-			'pet_spec' => $pet_spec, 'pet_breed_no' => $pet_breed_no, 'pet_sex' => $pet_sex,
-			'pet_neutered' => $pet_neutered, 'pet_dob' => $pet_dob, 'pet_vet_no' => $pet_vet_no,
-			'pet_notes' => $pet_comments, 'add_vacc_file' => $add_vacc_file ] );
-	
-	$msg->flush();
-	
-	if ( !$pet_no ) {
-		$pet_no = -$msg->id;
-	}
-	
-	if ( !empty( $entry[17] ) ) {
-		$form_id = 27;
-		
-		$upload_path = GFFormsModel::get_upload_path( $form_id );
-		$upload_url = GFFormsModel::get_upload_url( $form_id );
-
-		$file_url = unserialize($entry[17])[0][''];
-		$pet_vacc_img = str_replace( $upload_url, $upload_path, $file_url);
-				
-		if ( $pet and $pet->vacc_path ) {
-			$renamed = str_replace('.pdf', '.old.pdf', $pet->vacc_path);
-			rename(VACC_FOLDER . $pet->vacc_path, VACC_FOLDER . $renamed);
-		}
-		
-		copy($pet_vacc_img, VACC_FOLDER . $pet_no . '.pdf');
-		$add_vacc_file = 1;
-	}
-	
-	if ( $pet_no > 0 ) {
-		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
-				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
-	} else {
-		$petadmin->pets->create_pet( $cust_no, $msg->id, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
-				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
-		$pet_no = -$msg->no;
-	}
-}
 
 function time_slot_to_time($time_slot, $direction) {
 	if ($time_slot == 'am' and $direction == 'in') {
@@ -202,20 +121,51 @@ function time_slot_to_time($time_slot, $direction) {
 }
 
 
-function populate_customer_details( $form ) {
+/*
+function populate_customer_form($form) {
+	global $petadmin;
 	$customer = get_customer();
-	if ($customer) {
-		foreach ( $form['fields'] as &$field ) {
-			if ($field->inputName == 'cust_email') {
-				$field->defaultValue = $customer->email;		
-			}
-			if ($field->inputName == 'cust_name') {
-				$field->defaultValue = $customer->display_name();
-			}
+	
+	if (!$customer ) {
+		echo crowbank_error( 'No current customer' );
+		return $form;
+	}
+	
+	foreach( $form['fields'] as &$field ) {
+		if ( $field->label == 'Customer Number' ) {
+			$field->defaultValue = $customer->no;
+		}
+		
+		if ( $field->label == 'Name' ) {
+			$field->defaultValue = $customer->forename;
+			$field->defaultValue = $customer->surname;
+		}
+		
+		if ( $field->label == 'Address' ) {
+			$field->defaultValue = $customer->addr1;
+			$field->defaultValue = $customer->addr3;
+			$field->defaultValue = $customer->postcode;
+		}
+
+		if ( $field->label == 'Home Phone' ) {
+			$field->defaultValue = $customer->telno_home;
+		}
+
+		if ( $field->label == 'Mobile Phone' ) {
+			$field->defaultValue = $customer->telno_mobile;
+		}
+		
+		if ( $field->label == 'Mobile Phone 2' ) {
+			$field->defaultValue = $customer->telno_mobile2;
+		}
+		
+		if ( $field->label == 'Email Address' ) {
+			$field->defaultValue = $customer->email;
 		}
 	}
-	return $form;	
+	return $form;
 }
+*/
 
 function populate_pet_form ( $form ) {
 	global $petadmin;
@@ -241,7 +191,7 @@ function populate_pet_form ( $form ) {
 		
 		if ( $field->label == 'Vet' ) {
 			$choices = array();
-			$vets = $petadmin->vets->get_list();		
+			$vets = $petadmin->vets->get_list();
 			foreach ($vets as $vet) {
 				$selected = ($pet_no != 0 and $pet->vet->no == $vet->no);
 				$choices[] = array( 'text' => $vet->name, 'value' => $vet->no, 'isSelected' => $selected );
@@ -252,7 +202,7 @@ function populate_pet_form ( $form ) {
 		
 		if ( $field->label == 'Dog Breed' ) {
 			$choices = array();
-					
+			
 			$breeds = $petadmin->breeds->get_list('Dog');
 			foreach ( $breeds as $breed ) {
 				$selected = ($pet_no != 0 and $pet->breed->no == $breed->no);
@@ -268,7 +218,7 @@ function populate_pet_form ( $form ) {
 			$breeds = $petadmin->breeds->get_list('Cat');
 			foreach ( $breeds as $breed ) {
 				$selected = (($pet_no != 0 and $pet->breed->no == $breed->no) or
-				($pet_no == 0 and $breed->no == 208));
+						($pet_no == 0 and $breed->no == 208));
 				$choices[] = array( 'text' => $breed->desc, 'value' => $breed->no, 'isSelected' => $selected );
 			}
 			
@@ -320,7 +270,7 @@ function populate_pet_form ( $form ) {
 		if ( $field->label == 'KC Date' and $pet->kc_date ) {
 			$field->defaultValue = $pet->kc_date->format('Y-m-d');
 		}
-
+		
 		if ( $field->label == 'Comments' ) {
 			$field->defaultValue = $pet->notes;
 		}
@@ -341,6 +291,134 @@ function populate_pet_form ( $form ) {
 	}
 	
 	return $form;
+}
+
+function customer_submission( $entry, $form ) {
+	global $petadmin, $petadmin_db;
+	
+	$customer = get_customer();
+
+	if ($customer) {
+		$cust_no = $customer->no;
+		$msg_type = 'customer-update';
+	}
+	else {
+		$cust_no = 0;
+		$msg_type = 'customer-new';
+	}
+	
+	$cust_forename = rgar( $entry, '2.3');
+	$cust_surname = rgar( $entry, '2.6');
+	
+	$cust_addr1 = rgar( $entry, '3.1');
+	$cust_addr3 = rgar( $entry, '3.3');
+	$cust_postcode = rgar( $entry, '3.5');
+	$cust_telno_home = rgar( $entry, '4');
+	$cust_telno_mobile = rgar( $entry, '5');
+	$cust_telno_mobile2 = rgar( $entry, '7');
+	$cust_email = rgar( $entry, '6');
+	
+	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'cust_forename' => $cust_forename,
+			'cust_surname' => $cust_surname, 'cust_addr1' => $cust_addr1, 'cust_addr3' => $cust_addr3,
+			'cust_postcode' => $cust_postcode, 'cust_telno_home' => $cust_telno_home,
+			'cust_telno_mobile' => $cust_telno_mobile, 'cust_telno_mobile2' => $cust_telno_mobile2,
+			'cust_email' => $cust_email
+	] );
+	
+	$msg->flush();
+	
+	$customer->update( $cust_forename, $cust_surname, $cust_addr1, $cust_addr3, $cust_postcode,
+			$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2, $cust_email );
+}
+
+function pet_submission( $entry, $form ) {
+	global $petadmin, $petadmin_db;
+	
+	$cust_no = rgar( $entry, '1');
+	$pet_no = rgar( $entry, '14' );
+	$pet_name = rgar( $entry, '2');
+	$pet_spec = rgar( $entry, '3');
+	if ($pet_spec == 'Dog') {
+		$pet_breed_no = rgar( $entry, '4');
+	} else {
+		$pet_breed_no = rgar( $entry, '13');
+	}
+	$pet_sex = rgar( $entry, '6');
+	$pet_neutered = rgar( $entry, '7' );
+	$pet_dob = rgar( $entry, '5' );
+	$pet_vet_no = rgar( $entry, '8' );
+	#	$pet_vacc_date = rgar( $entry, '9' );
+	#	$pet_kc_date = rgar( $entry, '10' );
+	$pet_comments = rgar( $entry, '12' );
+	if ( $pet_no ) {
+		$msg_type = 'pet-update';
+	} else {
+		$msg_type = 'pet-new';
+	}
+	
+	$pet = null;
+	$add_vacc_file = 0;
+	
+	if ( $pet_no ) {
+		$pet = $petadmin->pets->get_by_no($pet_no);
+	}
+	
+	if ( !empty( $entry[17] ) ) {
+		$add_vacc_file = 1;
+	}
+	
+	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'pet_no' => $pet_no, 'pet_name' => $pet_name,
+			'pet_spec' => $pet_spec, 'pet_breed_no' => $pet_breed_no, 'pet_sex' => $pet_sex,
+			'pet_neutered' => $pet_neutered, 'pet_dob' => $pet_dob, 'pet_vet_no' => $pet_vet_no,
+			'pet_notes' => $pet_comments, 'add_vacc_file' => $add_vacc_file ] );
+	
+	$msg->flush();
+	
+	if ( !$pet_no ) {
+		$pet_no = -$msg->id;
+	}
+	
+	if ( !empty( $entry[17] ) ) {
+		$form_id = 27;
+		
+		$upload_path = GFFormsModel::get_upload_path( $form_id );
+		$upload_url = GFFormsModel::get_upload_url( $form_id );
+		
+		$file_url = unserialize($entry[17])[0][''];
+		$pet_vacc_img = str_replace( $upload_url, $upload_path, $file_url);
+		
+		if ( $pet and $pet->vacc_path ) {
+			$renamed = str_replace('.pdf', '.old.pdf', $pet->vacc_path);
+			rename(VACC_FOLDER . $pet->vacc_path, VACC_FOLDER . $renamed);
+		}
+		
+		copy($pet_vacc_img, VACC_FOLDER . $pet_no . '.pdf');
+		$add_vacc_file = 1;
+	}
+	
+	if ( $pet_no > 0 ) {
+		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
+	} else {
+		$petadmin->pets->create_pet( $cust_no, $msg->id, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
+				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
+		$pet_no = -$msg->no;
+	}
+}
+
+function populate_customer_form ( $form ) {
+	$customer = get_customer();
+	if ($customer) {
+		foreach ( $form['fields'] as &$field ) {
+			if ( $field->label == 'Email Address' ) {
+				$account_url = home_url('account');
+				$html = 'Email Address: ' . $customer->email . '<br>';
+				$html .= '<a href="' . $account_url . '">Change Password</a><br>';
+				$field->content = $html;
+			}
+		}
+	}
+	return $form;	
 }
 
 function populate_months( $form ) {
@@ -436,6 +514,94 @@ function crowbank_my_redirect() {
 
 	crowbank_log('redirecting to daily');	
 	exit(wp_redirect(home_url('daily')));
+}
+
+function current_customer_field( $field_name ) {
+	$cust = get_customer();
+	
+	if (!$cust)
+		return null;
+
+	return $cust->return_field( $field_name );
+}
+
+function crowbank_account_pre_update_profile( $changes, $id ) {
+	$customer = get_customer();
+	$crowbank_changes = [];
+	if ( isset($changes['first_name']) and $changes['first_name'] != $customer->forename) {
+		$crowbank_changes['cust_forename'] = $changes['first_name'];
+	}
+	if ( isset($changes['last_name']) and $changes['last_name'] != $customer->surname) {
+		$crowbank_changes['cust_surname'] = $changes['last_name'];
+	}
+	if ( isset($changes['user_email']) and $changes['user_email'] != $customer->email) {
+		$crowbank_changes['cust_email'] = $changes['user_email'];
+	}
+
+	if ($crowbank_changes) {
+		$customer->update( $crowbank_changes );
+		
+		$crowbank_changes['cust_no'] = $customer->no;
+		
+		$msg = new Message( $msg_type, $crowbank_changes );
+		
+		$msg->flush();
+	}
+}
+
+add_filter( 'gform_pre_render_23', 'populate_months' );
+add_filter( 'gform_pre_render_23', 'populate_months' );
+add_filter( 'gform_pre_render_25', 'populate_booking_form' );
+add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
+add_filter( 'gform_pre_render_27', 'populate_pet_form');
+add_filter( 'gform_pre_render_30', 'populate_customer_form');
+add_action( 'gform_after_submission_27', 'pet_submission', 10, 2 );
+add_action( 'gform_after_submission_30', 'customer_submission', 10, 2 );
+
+add_filter('gform_field_value_cust_forename', function() { return current_customer_field('cust_forename'); });
+add_filter('gform_field_value_cust_surname', function() { return current_customer_field('cust_surname'); });
+add_filter('gform_field_value_cust_addr1', function() { return current_customer_field('cust_addr1'); });
+add_filter('gform_field_value_cust_addr3', function() { return current_customer_field('cust_addr3'); });
+add_filter('gform_field_value_cust_postcode', function() { return current_customer_field('cust_postcode'); });
+add_filter('gform_field_value_cust_email', function() { return current_customer_field('cust_email'); });
+add_filter('gform_field_value_cust_telno_home', function() { return current_customer_field('cust_telno_home'); });
+add_filter('gform_field_value_cust_telno_mobile', function() { return current_customer_field('cust_telno_mobile'); });
+add_filter('gform_field_value_cust_telno_mobile2', function() { return current_customer_field('cust_telno_mobile2'); });
+/* add_action('um_account_pre_update_profile', 'crowbank_account_pre_update_profile'); */
+
+
+add_action('um_after_account_general', 'show_extra_fields', 100);
+function show_extra_fields() {
+	
+	global $ultimatemember;
+	$id = um_user('ID');
+	$output = '';
+	
+	$names = [ "phone_number",'job', "company", "tax-number","sector","company-employee-count","company-address"  ];
+	
+	$fields = [];
+	foreach( $names as $name )
+		$fields[ $name ] = $ultimatemember->builtin->get_specific_field( $name );
+		global $ultimatemember; $id = um_user('ID');
+		$fields = apply_filters( 'um_account_secure_fields', $fields, $id );
+		
+		foreach( $fields as $key => $data )
+			$output .= $ultimatemember->fields->edit_field( $key, $data );
+			
+			echo $output;
+}
+
+function get_custom_fields( $fields ) {
+	global $ultimatemember;
+	$array=array();
+	foreach ($fields as $field ) {
+		if ( isset( $ultimatemember->builtin->saved_fields[$field] ) ) {
+			$array[$field] = $ultimatemember->builtin->saved_fields[$field];
+		} else if ( isset( $ultimatemember->builtin->predefined_fields[$field] ) ) {
+			$array[$field] = $ultimatemember->builtin->predefined_fields[$field];
+		}
+	}
+	return $array;
 }
 
 function crowbank_gform_script() {

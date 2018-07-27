@@ -188,7 +188,9 @@ function crowbank_customer_pets($attr)
 			continue;
 		}
 			
-		$r .= "<tr><td>$pet->name</td>";
+		$update_url = home_url('pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
+		
+		$r .= "<tr><td><a href=" . '"' . $update_url . '">' . $pet->name . "</a></td>";
 		$r .= "<td>$pet->species</td>";
 		$breed_desc = $pet->breed->desc;
 		$r .= "<td>$breed_desc</td>";
@@ -201,7 +203,6 @@ function crowbank_customer_pets($attr)
 		}
 		$r .= "<td>$vacc</td>";
 		
-		$update_url = home_url('pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
 		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a></td></tr>';
 	}
 

@@ -26,6 +26,8 @@ function customer_list($attr = [], $content = null, $tag = '') {
 		$r .= $customer->forename . '</td><td>';
 		$first = true;
 		$pets = $customer->get_pets();
+		$c = count($pets);
+/*		$r .= "$c pets"; */
 		foreach ($pets as $pet) {
 			if (!$first) {
 				$r .= '<br>';

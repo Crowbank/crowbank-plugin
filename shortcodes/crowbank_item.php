@@ -48,6 +48,10 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_new_booking_request($attr);
 	elseif ($type == 'new-pet')
 		return crowbank_new_pet($attr);
+	elseif ($type == 'edit-customer')
+		return crowbank_edit_customer($attr);
+	elseif ($type == 'owner-holiday')
+		return crowbank_owner_holiday($attr);
 	elseif ($type == 'test-message')
 		return crowbank_test_message($attr);
 	else
@@ -174,6 +178,14 @@ function crowbank_new_booking_request($attr) {
 	return $r;
 }
 
+function crowbank_edit_customer($attr) {
+	$customer = get_customer();
+	$update_url = home_url('edit-customer/?cust=' . $customer->no);
+	
+	$r = '<a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a>';
+	return $r;
+}
+
 function crowbank_new_pet($attr) {
 	$customer = get_customer();
 	
@@ -185,6 +197,13 @@ function crowbank_new_pet($attr) {
 	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa" style="padding-right: 10px"></i> New Pet</a>';
 	
 	return $r;
+}
+
+function crowbank_owner_holiday($attr) {
+	global $petadmin;
+	
+	$date = get_daily_date();
+	
 }
 
 function crowbank_test_message($attr) {
