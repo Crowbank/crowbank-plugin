@@ -71,6 +71,8 @@ class Timesheets {
 	const RANKCLASS = array(
 		'Owner' => 'owner_class',
 		'O' => 'office_class',
+		'Kennel Manager' => 'supervisor_class',
+		'Senior Shift Leader' => 'supervisor_class',
 		'Shift Leader' => 'supervisor_class',
 		'Kennel Assistant' => 'assistant_class',
 		'Dog Walker' => 'walker_class',
