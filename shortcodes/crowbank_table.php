@@ -15,6 +15,8 @@ const STATUS_ARRAY = array(
 );
 
 const RANKCLASS = array(
+		'Kennel Manager' => 'supervisor_class',
+		'Senior Shift Leader' => 'supervisor_class',
 		'Shift Leader' => 'supervisor_class',
 		'Kennel Assistant' => 'assistant_class',
 		'Dog Walker' => 'walker_class',
