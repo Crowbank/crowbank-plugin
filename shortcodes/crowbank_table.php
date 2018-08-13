@@ -205,7 +205,7 @@ function crowbank_customer_pets($attr)
 		}
 		$r .= "<td>$vacc</td>";
 		
-		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a></td></tr>';
+		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a></td></tr>';
 	}
 
 
@@ -286,7 +286,7 @@ function crowbank_customer_bookings($attr) {
 
 			if ($time == 'future') {
 				$update_url = home_url('booking-request/?bk_no=' . $booking->no . '&cust=' . $customer->no);
-				$r .= '<a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a>';
+				$r .= '<a class="table_button booking_edit_button" href="' . $update_url . '">Modify <span class="fa fa-fw fa-edit"></span></a>';
 			}
 			
 			$r .= "</td><td>";
@@ -294,7 +294,7 @@ function crowbank_customer_bookings($attr) {
 			if ($time == 'future' and $booking->status == ' ') {
 				$deposit_url = $booking->deposit_url();
 				if ($deposit_url) {
-					$r .= '<a class="table_button deposit_button" href="' . $deposit_url . '"><span class="fa fa-fw fa-gbp"></span></a>';
+					$r .= '<a class="table_button deposit_button" href="' . $deposit_url . '">Deposit <span class="fa fa-fw fa-gbp"></span></a>';
 				}
 			}
 			
@@ -304,7 +304,7 @@ function crowbank_customer_bookings($attr) {
 				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no .
 						'&cust_surname=' . $customer->surname . '&bk_pets=' . $booking->pet_names() .
 						'&bk_start_date=' . $booking->start_date->format("Y-m-d") . '&bk_end_date=' . $booking->end_date->format("Y-m-d"));
-				$r .= '<a class="table_button cancel_booking_button" href="' . $cancellation_url . '"><span class="fa fa-fw fa-times"></span></a>';
+				$r .= '<a class="table_button cancel_booking_button" href="' . $cancellation_url . '">Cancel <span class="fa fa-fw fa-times"></span></a>';
 			}
 			
 			$r .= "</td></tr>";

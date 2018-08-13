@@ -182,7 +182,7 @@ function crowbank_edit_customer($attr) {
 	$customer = get_customer();
 	$update_url = home_url('edit-customer/?cust=' . $customer->no);
 	
-	$r = '<a class="table_button booking_edit_button" href="' . $update_url . '"><span class="fa fa-fw fa-edit"></span></a>';
+	$r = '<a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a>';
 	return $r;
 }
 
@@ -194,7 +194,7 @@ function crowbank_new_pet($attr) {
 	}
 	$request_url = home_url('pet/?cust=' . $customer->no);
 	
-	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa" style="padding-right: 10px"></i> New Pet</a>';
+	$r = '<a class="booking_request_button" href="' . $request_url . '"><i class="fa"></i>New Pet</a>';
 	
 	return $r;
 }
