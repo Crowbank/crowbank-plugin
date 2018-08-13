@@ -315,20 +315,18 @@ function customer_submission( $entry, $form ) {
 	$cust_postcode = rgar( $entry, '3.5');
 	$cust_telno_home = rgar( $entry, '4');
 	$cust_telno_mobile = rgar( $entry, '5');
-	$cust_telno_mobile2 = rgar( $entry, '7');
-	$cust_email = rgar( $entry, '6');
+	$cust_telno_mobile2 = rgar( $entry, '8');
 	
 	$msg = new Message( $msg_type, ['cust_no' => $cust_no, 'cust_forename' => $cust_forename,
 			'cust_surname' => $cust_surname, 'cust_addr1' => $cust_addr1, 'cust_addr3' => $cust_addr3,
 			'cust_postcode' => $cust_postcode, 'cust_telno_home' => $cust_telno_home,
-			'cust_telno_mobile' => $cust_telno_mobile, 'cust_telno_mobile2' => $cust_telno_mobile2,
-			'cust_email' => $cust_email
+			'cust_telno_mobile' => $cust_telno_mobile, 'cust_telno_mobile2' => $cust_telno_mobile2
 	] );
 	
 	$msg->flush();
 	
 	$customer->update( $cust_forename, $cust_surname, $cust_addr1, $cust_addr3, $cust_postcode,
-			$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2, $cust_email );
+			$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2 );
 }
 
 function pet_submission( $entry, $form ) {

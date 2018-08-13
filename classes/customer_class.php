@@ -85,14 +85,14 @@ class Customer {
   }
   
   public function update( $cust_forename, $cust_surname, $cust_addr1, $cust_addr3, $cust_postcode,
-  		$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2, $cust_email ) {
+  		$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2 ) {
   	global $petadmin, $petadmin_db;
   	
   	$sql = "update my_customer set cust_forename = '" .  $cust_forename . "', cust_surname = '";
   	$sql .= $cust_surname . "', cust_addr1 = '" . $cust_addr1 . "', cust_addr3 = '" . $cust_addr3;
   	$sql .= "', cust_postcode = '" . $cust_postcode . "', cust_telno_home = '" . $cust_telno_home;
   	$sql .= "', cust_telno_mobile = '" . $cust_telno_mobile . "', cust_telno_mobile2 = '" . $cust_telno_mobile2;
-  	$sql .= "', cust_email = '" . $cust_email . "' where cust_no = " . $this->no;
+  	$sql .= "' where cust_no = " . $this->no;
   	
   	$petadmin_db->execute($sql);
   }
