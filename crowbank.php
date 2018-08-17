@@ -70,15 +70,15 @@ function crowbank_show_alert($msg, $level) {
 	$msg . '</div>';
 }
 
-function crowbank_show_alerts() {
+function crowbank_show_alerts($default) {
 	/* Retrieve any alerts that have been queued, display and empty queue*/
 	$r = '';
 	if (!array_key_exists('crowbank_alerts', $_SESSION))
-		return '';
+		return $default;
 	
 	$a = $_SESSION['crowbank_alerts'];
 	if (count($a) == 0) {
-		return '';
+		return $default;
 	}
 	
 	for ($i = 0; $i < count($a); $i++) {

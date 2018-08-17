@@ -18,7 +18,7 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 	
 	$attr = array_change_key_case((array)$attr, CASE_LOWER);
 
-	$attr = shortcode_atts([ 'type' => '', 'format' => 'D, j/m', 'page' => $current_url, 'text' => 'Link'], $attr, $tag);
+	$attr = shortcode_atts([ 'type' => '', 'format' => 'D, j/m', 'page' => $current_url, 'text' => 'Link', 'default' => ''], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');
@@ -52,8 +52,10 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_edit_customer($attr);
 	elseif ($type == 'owner-holiday')
 		return crowbank_owner_holiday($attr);
-	elseif ($type == 'alerts')
-		return crowbank_show_alerts();
+	elseif ($type == 'alerts') {
+		$default = $attr['default'];
+		return crowbank_show_alerts($default);
+	}
 	elseif ($type == 'test-message')
 		return crowbank_test_message($attr);
 		else
