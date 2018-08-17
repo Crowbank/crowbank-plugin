@@ -52,9 +52,11 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_edit_customer($attr);
 	elseif ($type == 'owner-holiday')
 		return crowbank_owner_holiday($attr);
+	elseif ($type == 'alerts')
+		return crowbank_show_alerts();
 	elseif ($type == 'test-message')
 		return crowbank_test_message($attr);
-	else
+		else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
 

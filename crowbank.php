@@ -55,6 +55,41 @@ function crowbank_error($msg) {
 	return '<div class="crowbank-error">' . $msg . '</div>';
 }
 
+function crowbank_add_alert($msg, $level) {
+	/* Add an alert to the queue, to be displayed by crowbank_show_alerts() */
+	global $_SESSION;
+	
+	if (!in_array('crowbank_alerts', $_SESSION)) {
+		$_SESSION['crowbank_alerts'] = array();
+	}
+	$_SESSION['crowbank_alerts'][] = array($msg, $level);
+}
+
+function crowbank_show_alert($msg, $level) {
+	return '<div class="alert alert-' . $level . '"><span class="closebtn" onclick="this.parentElement.style.display=' . "'none';" . '">&times;</span>' .
+	$msg . '</div>';
+}
+
+function crowbank_show_alerts() {
+	/* Retrieve any alerts that have been queued, display and empty queue*/
+	$r = '';
+	if (!array_key_exists('crowbank_alerts', $_SESSION))
+		return '';
+	
+	$a = $_SESSION['crowbank_alerts'];
+	if (count($a) == 0) {
+		return '';
+	}
+	
+	for ($i = 0; $i < count($a); $i++) {
+		$r .= crowbank_show_alert($a[$i][0], $a[$i][1]);
+	}
+	
+	$_SESSION['crowbank_alerts'] = array();
+	
+	return $r;
+}
+
 function crowbank_activation() {
 	crowbank_log('Activated');
 }
@@ -327,6 +362,8 @@ function customer_submission( $entry, $form ) {
 	
 	$customer->update( $cust_forename, $cust_surname, $cust_addr1, $cust_addr3, $cust_postcode,
 			$cust_telno_home, $cust_telno_mobile, $cust_telno_mobile2 );
+	
+	crowbank_add_alert('Thank you for updating your contact details', 'info');
 }
 
 function pet_submission( $entry, $form ) {
@@ -397,11 +434,15 @@ function pet_submission( $entry, $form ) {
 	if ( $pet_no > 0 ) {
 		$pet->update( $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
 				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
+		$msg = 'Thank you for updating ' . $pet_name . "'s information";
 	} else {
 		$petadmin->pets->create_pet( $cust_no, $msg->id, $pet_name, $pet_spec, $pet_breed_no, $pet_sex,
 				$pet_neutered, $pet_dob, $pet_vet_no, $pet_comments, $add_vacc_file );
 		$pet_no = -$msg->no;
+		$msg = 'Thank you for registering ' . $pet_name;
 	}
+	
+	crowbank_add_alert($msg, 'info');
 }
 
 function populate_customer_form ( $form ) {
@@ -413,6 +454,10 @@ function populate_customer_form ( $form ) {
 				$html = 'Email Address: ' . $customer->email . '<br>';
 				$html .= '<a href="' . $account_url . '">Change Password</a><br>';
 				$field->content = $html;
+			}
+			
+			if ( $field->label == 'Customer' ) {
+				$field->defaultValue = $customer->no;
 			}
 		}
 	}

@@ -345,7 +345,7 @@ from my_booking";
 		$sql .= 'bk_gross_amt, bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
 		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
 		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
-		$sql .= ", 0.0, '" . $comments . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
+		$sql .= ", 0.0, '" . esc_sql($comments) . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
 		
 		$petadmin_db->execute($sql);
 		

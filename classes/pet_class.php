@@ -158,12 +158,12 @@ pet_vacc_date, pet_deceased, pet_notes, pet_vacc_path from vw_pet";
 		$this->count++;
 		$this->by_no[$pet->no] = $pet;
 				
-		$sql = "insert into my_pet (pet_no, pet_cust_no, pet_name, pet_spec_no, pet_breed_no, pet_dob, ";
-		$sql .= "pet_warning, pet_sex, pet_neutered, pet_vet_no, pet_vacc_status, pet_deceased, pet_vacc_path)";
-		$sql .= " values (" . -$msg_no . ", " . $cust_no . ", '" . $pet_name . "', ";
+		$sql = "insert into my_pet (pet_no, pet_cust_no, pet_name, pet_spec_no, pet_breed_no, pet_sex, pet_neutered, pet_dob, ";
+		$sql .= "pet_vet_no, pet_vacc_status, pet_notes, pet_vacc_path, pet_vacc_date, pet_deceased, pet_warning)";
+		$sql .= " values (" . -$msg_no . ", " . $cust_no . ", '" . esc_sql($pet_name) . "', ";
 		$sql .= ($pet_species == 'Dog' ? 1 : 2) . ", " . $pet_breed_no . ", '" . $pet_sex . "', '";
-		$sql .= $pet_neutered . "', '" . $pet_dob . "', " . $pet_vet_no . ", ";
-		$sql .= $vacc_status .  "', '" . $pet_comments . "', '" . $vacc_path . "')";
+		$sql .= $pet_neutered . "', '" . $pet_dob . "', " . $pet_vet_no . ", '";
+		$sql .= $vacc_status .  "', '" . esc_sql($pet_comments) . "', '" . $vacc_path . "', '1971-01-01', 'N', '')";
 		
 		$petadmin_db->execute( $sql );
 	}
