@@ -10,13 +10,14 @@ echo '
 
 $cart = $_REQUEST['cartId'];
 $amount = $_REQUEST['cost'];
-
 preg_match_all('/PBL-(\d+)/', $cart, $matches);
 
 $bk_no = $matches[1][0];
-echo 'cartId: ' . $cart . '<br>';
-echo 'amount: ' . $amount . '<br>';
-echo 'bk_no: ' . $bk_no . '<br>';
+
+echo 'Thank you for paying the ' . $_REQUEST['authAmountString'] . ' deposit<br>';
+echo 'Your booking #' . $bk_no . ' is now confirmed<br>';
+
+echo '<a href="http://dev.crowbankkennels.co.uk/my" class="w3-btn w3-black">Return to Crowbank Home Screen</a>';
 
 echo '</div>
 
