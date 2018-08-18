@@ -671,9 +671,9 @@ function populate_booking_form ($form) {
 					continue;
 				}
 				
-				$in_booking = false;
-				if ($booking and $booking->check_pet($pet)) {
-					$in_booking = true;
+				$in_booking = true;
+				if ($booking and ! $booking->check_pet($pet)) {
+					$in_booking = false;
 				}
 
 				$choices[] = array( 'text' => $pet->name, 'value' => $pet->no, 'isSelected' => $in_booking);
