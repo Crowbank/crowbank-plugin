@@ -43,7 +43,7 @@ function check_booking_confirmation( $form ) {
 	
 	$customer = get_customer();
 	
-	populate_customer_details( $form );
+/*	populate_customer_details( $form ); */
 	
 	$booking = null;
 	$bk_no = 0;
