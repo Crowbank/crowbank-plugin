@@ -8,7 +8,16 @@ echo '
 
 <div class="w3-container">';
 
-echo htmlentities('crowbank.partners@gmail.com');
+$cart = $_REQUEST['cartId'];
+$amount = $_REQUEST['cost'];
+
+preg_match_all('/PBL-(\d+)/', $cart, $matches);
+
+$bk_no = $matches[1][0];
+echo 'cartId: ' . $cart . '<br>';
+echo 'amount: ' . $amount . '<br>';
+echo 'bk_no: ' . $bk_no . '<br>';
+
 echo '</div>
 
 <div class="w3-container">
