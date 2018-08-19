@@ -33,27 +33,23 @@ function crowbank_calendar($attr = [], $content = null, $tag = '') {
 	
 	$attr = array_change_key_case((array)$attr, CASE_LOWER);
 	
-	$attr = shortcode_atts([ 'class' => '', 'title' => '', 'offset' => 0], $attr, $tag);
+	$attr = shortcode_atts([ 'class' => '', 'title' => '', 'offset' => 0, 'runtype' => 'kennels'], $attr, $tag);
 
 	$title = $attr['title'];
 	$class = $attr['class'];
 	$offset = $attr['offset'];
+	$runtype = $attr['runtype'];
 	$availabilityClasses = array();
 	$availabilityClasses[0] = 'free';
 	$availabilityClasses[1] = 'busy';
 	$availabilityClasses[2] = 'full';
 
-	if (isset($_REQUEST['runtype']))
-		$runtype = $_REQUEST['runtype'];
-	else
-		return '';
-	
 	if ($runtype == 'cattery') {
 		$species = 'Cat';
 		$run_type = 'Any';
 	} else {
 		$species = 'Dog';
-		if ($runtype == 'any')
+		if ($runtype == 'kennels')
 			$run_type = 'Any';
 		else
 			$run_type = 'Deluxe';

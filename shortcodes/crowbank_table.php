@@ -182,15 +182,16 @@ function crowbank_customer_pets($attr)
 		return crowbank_error('No customer specified');
 
 	$r = '<div style="overflow-x:auto;"><table class="table">';
-	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th><th></th></thead><tbody>';
+	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th><th></th><th></th></thead><tbody>';
 
 	$pets = $customer->get_pets();
 	foreach($pets as $pet) {
 		if ($pet->deceased == 'Y') {
 			continue;
 		}
-			
+
 		$update_url = home_url('pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
+		$remove_url = home_url('remove-pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
 		
 		$r .= "<tr><td><a href=" . '"' . $update_url . '">' . $pet->name . "</a></td>";
 		$r .= "<td>$pet->species</td>";
@@ -205,7 +206,9 @@ function crowbank_customer_pets($attr)
 		}
 		$r .= "<td>$vacc</td>";
 		
-		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a></td></tr>';
+		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a></td>';
+		
+		$r .= '<td><a class="table_button cancel_booking_button" href="' . $remove_url . '">Remove <span class="fa fa-fw fa-times"></span></a></td></tr>';
 	}
 
 
