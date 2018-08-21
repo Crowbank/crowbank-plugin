@@ -22,8 +22,32 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
 	return $r;
 }
 
-function crowbank_calendar($attr = [], $content = null, $tag = '') {
+function crowbank_load_calendar($runtype, $offset) {
+	global $petadmin_db;
+	
+	$html = crowbank_calendar(['offset' => $offset, 'runtype' => $runtype], null, '', 1);
+	$sql = "insert into crwbnk_calendar_cache (runtype, offset, html) values ('" . $runtype . "', " . $offset . ", '" . $html . "')";
+	$petadmin_db->execute($sql);
+}
+
+function crowbank_load_calendars () {
+	global $petadmin_db;
+	
+	$sql = 'truncate table crwbnk_calendar_cache';
+	$petadmin_db->execute($sql);
+	
+	for ($i = 0; $i < 12; $i ++) {
+		crowbank_load_calendar('kennels', $i);
+		crowbank_load_calendar('deluxe', $i);
+		crowbank_load_calendar('cattery', $i);
+	}
+	return 'calendars loaded<br>';
+}
+add_shortcode('crowbank_load_calendars', 'crowbank_load_calendars');
+
+function crowbank_calendar($attr = [], $content = null, $tag = '', $force = 0) {
 	global $petadmin;
+	global $petadmin_db;
 	
 	$months = array (1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
 			7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December');
@@ -54,49 +78,59 @@ function crowbank_calendar($attr = [], $content = null, $tag = '') {
 		else
 			$run_type = 'Deluxe';
 	}
-
-	$classFunc = function($date) use ($availability, $species, $run_type, $availabilityClasses) {
-		$a = $availability->availability($date, $species, $run_type);
-		if (isset($availabilityClasses[$a]))
-			return $availabilityClasses[$a];
+	
+	if ($force == 0) {
+		/* read from database, rather than evaluate */
 		
-		return '';
-	};
-	
-	if (isset($_REQUEST['monthyear']))
-		$monthyear = $_REQUEST['monthyear'];
-	else
-		$monthyear = 0;
-	
-	$month = intval(date("m", time()));
-	$year = intval(date("Y", time()));
-	
-	$offset += $monthyear;
-	
-	if ($offset > 0) {
-		$month += $offset;
-		while ($month > 12) {
-			$year += 1;
-			$month -= 12;
+		$sql = "select html from crwbnk_calendar_cache where runtype = '" . $runtype . "' and offset = " . $offset;
+		$result = $petadmin_db->execute($sql);
+		foreach($result as $row) {
+			$r = $row['html'];
 		}
+	} else {
+		$classFunc = function($date) use ($availability, $species, $run_type, $availabilityClasses) {
+			$a = $availability->availability($date, $species, $run_type);
+			if (isset($availabilityClasses[$a]))
+				return $availabilityClasses[$a];
+			
+			return '';
+		};
+		
+		if (isset($_REQUEST['monthyear']))
+			$monthyear = $_REQUEST['monthyear'];
+		else
+			$monthyear = 0;
+		
+		$month = intval(date("m", time()));
+		$year = intval(date("Y", time()));
+		
+		$offset += $monthyear;
+		
+		if ($offset > 0) {
+			$month += $offset;
+			while ($month > 12) {
+				$year += 1;
+				$month -= 12;
+			}
+		}
+		
+		$calendar = new Calendar();
+		$calendar->currentYear = $year;
+		$calendar->currentMonth = $month;
+		$calendar->classFunc = $classFunc;
+		
+		if (!$title) {
+			$title = $months[$month] . ' ' . $year;
+		}
+		
+		$calendar->title = $title;
+		
+		$r = $calendar->show();
+	
+		$rr = '<div' . ($class == '' ? '' : ' class="' . $class . '"') . '>';
+		
+		$r = $rr . $r . '</div>';
 	}
-	
-	$calendar = new Calendar();
-	$calendar->currentYear = $year;
-	$calendar->currentMonth = $month;
-	$calendar->classFunc = $classFunc;
-	
-	if (!$title) {
-		$title = $months[$month] . ' ' . $year;
-	}
-	
-	$calendar->title = $title;
-	
-	$r = $calendar->show();
-
-	$rr = '<div' . ($class == '' ? '' : ' class="' . $class . '"') . '>';
-	
-	$r = $rr . $r . '</div>';
 	return $r;
 		
 }

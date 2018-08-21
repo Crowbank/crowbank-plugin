@@ -104,6 +104,13 @@ class Booking {
 		return $names;
 	}
 	
+	public function is_deluxe() {
+		/* return 1 if booking has dogs, and at least one goes to deluxe
+		 * return 0 if booking has dogs, and none goes to deluxe
+		 * return -1 if booking has no dogs
+		 */
+	}
+	
 	public function deposit() {
 		if ($this->customer->nodeposit) {
 			return 0;

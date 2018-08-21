@@ -19,6 +19,8 @@ class Customer {
   private $past_bookings = array();
   private $current_bookings = array();
   private $future_bookings = array();
+  private $max_bk_no = 0;
+  private $deluxe = 0;
 
   public function __construct($row) {
     $this->no = (int) $row['cust_no'];
@@ -113,6 +115,14 @@ class Customer {
   	return $this->bookings;
   }
   
+  public function is_deluxe() {
+  	global $petadmin;
+  	
+  	$petadmin->bookings->load();
+  	
+  	return $this->deluxe;
+  }
+  
   public function get_current_bookings() {
   	global $petadmin;
   	
@@ -142,6 +152,7 @@ class Customer {
   }
   
   public function add_booking($booking) {
+  	$no = $this->no;
   	$this->bookings[$booking->no] = $booking;
   	$today = new DateTime();
   	if ($booking->start_date > $today) {
@@ -154,6 +165,11 @@ class Customer {
   	
   	if ($booking->start_date <= $today and $booking->end_date >= $today) {
   		$this->current_bookings[$booking->no] = $booking;
+  	}
+  	
+  	if ($booking->no > $this->max_bk_no) {
+  		$this->max_bk_no = $booking->no;
+  		$this->deluxe = $booking->deluxe;
   	}
   }
   

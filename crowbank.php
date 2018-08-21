@@ -114,6 +114,7 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_calendar.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_booking_action.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/customer_list.php';
+	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_availability.php';
 	
 	add_shortcode('crowbank_table', 'crowbank_table');
 	add_shortcode('crowbank_item', 'crowbank_item');
@@ -665,16 +666,15 @@ function crowbank_styles_and_scripts()
 	wp_register_style( 'crowbank-style', plugins_url( '/css/crowbank2.css', __FILE__ ));
 	wp_register_style( 'calendar-style', plugins_url( '/css/calendar.css', __FILE__ ));
 	wp_register_script( 'customer_table', plugins_url( '/js/customer_table.js', __FILE__));
-	wp_register_script( 'crowbank', plugins_url( '/js/crowbank.js', __FILE__));
+	wp_register_script( 'crowbank', plugins_url( '/js/crowbank.js', __FILE__), array( 'jquery' ));
 	
 	// For either a plugin or a theme, you can then enqueue the style:
 	wp_enqueue_style( 'crowbank-style', false, array(), null );
 	wp_enqueue_style( 'calendar-style', false, array(), null);
 	
-	wp_enqueue_script( 'customer_table', plugins_url( '/js/customer_table.js', __FILE__),
-			array(), false, true);
-	wp_enqueue_script( 'crowbank', plugins_url( '/js/crowbank.js', __FILE__),
-			array(), false, true);
+	wp_enqueue_script( 'customer_table', plugins_url( '/js/customer_table.js', __FILE__), array(), false, true);
+	wp_enqueue_script( 'crowbank', plugins_url( '/js/crowbank.js', __FILE__), array( 'jquery' ), false, false);
+	
 }
 add_action( 'wp_enqueue_scripts', 'crowbank_styles_and_scripts' );
 
