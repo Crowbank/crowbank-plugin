@@ -547,6 +547,7 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	
 	return $r;
 }
+add_shortcode('crowbank_booking_confirmation', 'crowbank_booking_confirmation');
 
 function crowbank_booking_cancellation($attr = [], $content = null, $tag = '') {
 	global $petadmin;
@@ -586,6 +587,7 @@ function crowbank_booking_cancellation($attr = [], $content = null, $tag = '') {
 			$r = 'Your cancellation request has been processed - you should get an email confirmation shortly';
 			return $r;
 }
+add_shortcode('crowbank_booking_cancellation', 'crowbank_booking_cancellation');
 
 function crowbank_booking_cancellation_aa($attr = [], $content = null, $tag = '') {
 	global $petadmin;

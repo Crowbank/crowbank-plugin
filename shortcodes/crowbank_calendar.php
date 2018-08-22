@@ -21,6 +21,7 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
 	
 	return $r;
 }
+add_shortcode('crowbank_calendar_legend', 'crowbank_calendar_legend');
 
 function crowbank_load_calendar($runtype, $offset) {
 	global $petadmin_db;
@@ -132,5 +133,5 @@ function crowbank_calendar($attr = [], $content = null, $tag = '', $force = 0) {
 		$r = $rr . $r . '</div>';
 	}
 	return $r;
-		
 }
+add_shortcode('crowbank_calendar', 'crowbank_calendar');

@@ -19,6 +19,7 @@ class Customer {
   private $past_bookings = array();
   private $current_bookings = array();
   private $future_bookings = array();
+  private $draft_bookings = array();
   private $max_bk_no = 0;
   private $deluxe = 0;
 
@@ -123,6 +124,14 @@ class Customer {
   	return $this->deluxe;
   }
   
+  public function get_draft_bookings() {
+  	global $petadmin;
+  	
+  	$petadmin->bookings->load();
+  	
+  	return $this->draft_bookings;
+  }
+  
   public function get_current_bookings() {
   	global $petadmin;
   	
@@ -155,19 +164,21 @@ class Customer {
   	$no = $this->no;
   	$this->bookings[$booking->no] = $booking;
   	$today = new DateTime();
-  	if ($booking->start_date > $today) {
-  		$this->future_bookings[$booking->no] = $booking;
+  	
+  	if ($booking->status == 'D') {
+  		$this->draft_bookings[$booking->no] = $booking;
   	} 
-  	
-  	if ($booking->end_date < $today) {
-  		$this->past_bookings[$booking->no] = $booking;
-  	}
-  	
-  	if ($booking->start_date <= $today and $booking->end_date >= $today) {
-  		$this->current_bookings[$booking->no] = $booking;
-  	}
-  	
-  	if ($booking->no > $this->max_bk_no) {
+  	elseif ($booking->start_date > $today) {
+		$this->future_bookings[$booking->no] = $booking;
+	} 
+	elseif ($booking->end_date < $today) {
+	  	$this->past_bookings[$booking->no] = $booking;
+	}
+	elseif ($booking->start_date <= $today and $booking->end_date >= $today) {
+	  	$this->current_bookings[$booking->no] = $booking;
+	}
+
+	if ($booking->no > $this->max_bk_no) {
   		$this->max_bk_no = $booking->no;
   		$this->deluxe = $booking->deluxe;
   	}

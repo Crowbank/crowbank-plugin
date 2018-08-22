@@ -59,6 +59,6 @@ function customer_list($attr = [], $content = null, $tag = '') {
 	$r .= '</td></tr></tbody></table></div>';
 	return $r;
 }
-	
+add_shortcode('crowbank_customer_list', 'customer_list');
 	
 	

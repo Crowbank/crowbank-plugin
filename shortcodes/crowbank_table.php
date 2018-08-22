@@ -11,7 +11,8 @@ const STATUS_ARRAY = array(
 		'P' => ['standbybooking', 'Provisional'],
 		'S' => ['standbybooking', 'Standby'],
 		'O' => ['standbybooking', 'Online'],
-		'R' => ['requestedbooking', 'Requested']
+		'R' => ['requestedbooking', 'Requested'],
+		'D' => ['draftbooking', 'Draft']
 );
 
 const RANKCLASS = array(
@@ -84,6 +85,7 @@ function crowbank_table($attr = [], $content = null, $tag = '') {
 	$r = $rr . $r . '</div>';
 	return $r;
 }
+add_shortcode('crowbank_table', 'crowbank_table');
 
 /* tables:
 
@@ -240,6 +242,10 @@ function crowbank_customer_bookings($attr) {
 		$bookings = $customer->get_future_bookings();
 		$title = 'Future';
 	}
+	elseif ($time == 'draft') {
+		$bookings = $customer->get_draft_bookings();
+		$title = 'Draft';
+	}
 	else
 		return crowbank_error('Unknown time ' . $time);
 
@@ -287,7 +293,7 @@ function crowbank_customer_bookings($attr) {
 			$r .= "</td><td align=right>" . number_format($booking->gross_amt, 2) . "</td><td align=right>" . number_format($booking->paid_amt, 2) .
 			"</td><td align=right>" . number_format($booking->gross_amt-$booking->paid_amt, 2) . "</td><td>$status_desc</td><td>";
 
-			if ($time == 'future') {
+			if ($time == 'future' or $time == 'draft') {
 				$update_url = home_url('booking-request/?bk_no=' . $booking->no . '&cust=' . $customer->no);
 				$r .= '<a class="table_button booking_edit_button" href="' . $update_url . '">Modify <span class="fa fa-fw fa-edit"></span></a>';
 			}
@@ -303,7 +309,7 @@ function crowbank_customer_bookings($attr) {
 			
 			$r .= "</td><td>";
 			
-			if ($time == 'future' and ($booking->status == ' ' or $booking->status == 'V')) {
+			if (($time == 'future' and ($booking->status == ' ' or $booking->status == 'V')) or $booking->status == 'D') {
 				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no .
 						'&cust_surname=' . $customer->surname . '&bk_pets=' . $booking->pet_names() .
 						'&bk_start_date=' . $booking->start_date->format("Y-m-d") . '&bk_end_date=' . $booking->end_date->format("Y-m-d"));

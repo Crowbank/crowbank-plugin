@@ -231,6 +231,11 @@ table th[class*="col-"] {
   font-style: italic;
 }
 
+.draftbooking {
+  background-color: #e6e874;
+  font-style: italic;
+}
+
 .pastbooking { 
 }
 

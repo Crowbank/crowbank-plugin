@@ -38,6 +38,8 @@ class Availability {
 			}
 			$this->runs[$species][$rt_desc][$date->getTimestamp()] = $availability;
 		}
+		
+		$this->isLoaded = true;
 	}
 	
 	public function availability($date, $species, $runtype) {

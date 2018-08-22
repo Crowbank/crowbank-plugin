@@ -440,3 +440,4 @@ function crowbank_confirmation($attr = [], $content = null, $tag = '') {
 	}
 	return $c;
 }
+add_shortcode('crowbank_confirmation', 'crowbank_confirmation');

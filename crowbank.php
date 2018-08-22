@@ -115,16 +115,7 @@ function crowbank_shortcodes_init() {
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_booking_action.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/customer_list.php';
 	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_availability.php';
-	
-	add_shortcode('crowbank_table', 'crowbank_table');
-	add_shortcode('crowbank_item', 'crowbank_item');
-	add_shortcode('crowbank_toggle', 'crowbank_toggle');
-	add_shortcode('crowbank_confirmation', 'crowbank_confirmation');
-	add_shortcode('crowbank_calendar', 'crowbank_calendar');
-	add_shortcode('crowbank_customer_list', 'customer_list');
-	add_shortcode('crowbank_calendar_legend', 'crowbank_calendar_legend');
-	add_shortcode('crowbank_booking_cancellation', 'crowbank_booking_cancellation');
-	add_shortcode('crowbank_booking_confirmation', 'crowbank_booking_confirmation');
+	require_once CROWBANK_ABSPATH . 'shortcodes/crowbank_tab.php';
 }
 
 add_action('init', 'crowbank_shortcodes_init');

@@ -9,6 +9,7 @@ function crowbank_toggle($attr = [], $content = null, $tag = '') {
 	return	'<input class="tgl tgl-flat" id="' . $name . '" type="checkbox">
 <label class="tgl-btn" data-tg-off="' . $attr['off'] . '" data-tg-on="' . $attr['on'] . '" for="' . $name . '"></label>';
 }
+add_shortcode('crowbank_toggle', 'crowbank_toggle');
 
 function crowbank_item($attr = [], $content = null, $tag = '') {
 	global $petadmin;
@@ -61,6 +62,7 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
+add_shortcode('crowbank_item', 'crowbank_item');
 
 function crowbank_prev_day($attr) {
 	global $petadmin;
