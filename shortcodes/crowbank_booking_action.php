@@ -35,6 +35,15 @@ function check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_
 }
 
 function check_booking_confirmation( $form ) {
+	/* This function is called before form 26 (Booking Request Confirmation) is rendered.
+	 * That form is part of the Booking Request Confirmation page, which is the confirmation follow-up from form 25 (Booking)
+	 * The REQUEST object, at this point, contains the value of all the fields filled in the Booking form.
+	 * The Booking form can either be called empty (for a new booking), or full (to modify an existing booking.
+	 * In the latter case, the bk_no is set to non-zero.
+	 * 
+	 * To facilitate some of the functionality here, and anticipating the potential need to save a draft booking, one is created
+	 * using the data fields. That is the case whether or not bk_no is set. If it is, that bk_no is also included in the draft booking.
+	 */
 	global $petadmin, $petadmin_db, $wp;
 
 	$availability_responses = array('A new booking will be created, and you should receive an email confirmation shortly',
@@ -192,6 +201,16 @@ function check_booking_confirmation( $form ) {
 		}
 	}
 	
+	/* At this point, validation tests are done, and we need to create a draft booking
+	 * 
+	 */
+	
+	if ($booking) {
+		$msg_type = 'booking-update';
+	} else {
+		$msg_type = 'booking-request';
+	}
+	
 	$sql = "select rate_start_date, rate_category, rate_service, rate_amount from my_rate order by rate_start_date desc";
 	$result = $petadmin_db->execute($sql);
 	
@@ -269,6 +288,31 @@ function check_booking_confirmation( $form ) {
 	}
 	
 	/* with preparation out of the way, start populating the html element */
+
+	$overlapping = false;
+	
+	if (!$booking) {
+		$overlapping = $petadmin->bookings->find_overlapping($customer, $start_date, $end_date);
+	}
+	
+	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers,
+			'start_date' => $start_date->format('Ymd'), 'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'),
+			'end_time' => $end_time, 'deluxe' => $is_deluxe, 'comment' => $comment, 'availability' => $availability,
+			'cost_estimate' => $cost_estimate, 'status' => 'D', 'overlapping' => $overlapping]);
+	
+	$msg->flush();
+	
+	$draft_booking = $petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time,
+			$is_deluxe, $comment, 'D', $msg->id, $cost_estimate);
+	
+	if ($booking) {
+		$draft_booking->original_booking = $booking;
+	}
+	
+	$deposit = $draft_booking->deposit();
+	if ($deposit > 0.0) {
+		/* need to require deposit */
+	}
 	
 	$r = '<div class="booking-confirmation"><table class="table"><tbody>';
 	$r .= '<tr' . (in_array('pets', $changed_fields) ? ' class="changed_field"' : '') . '><td class="field-name">Pets</td><td class="field-value">';
@@ -322,7 +366,12 @@ function check_booking_confirmation( $form ) {
 	
 	if ($availability == 0) {
 		$r .= ' free">Good availability for all requested dates';
-		$form['button']['text'] = 'Create Booking';
+		if ($deposit > 0) {
+			$form['button']['text'] = 'Pay Deposit';
+			$r .= '. A deposit of £' . $deposit . ' will be required to create booking';
+		} else {
+			$form['button']['text'] = 'Create Booking';
+		}
 	} else if ($availability == 1) {
 		$r .= ' busy">Limited availability for some dates - please await confirmation';
 		$form['button']['text'] = 'Submit Booking Request';
@@ -344,7 +393,11 @@ function check_booking_confirmation( $form ) {
 	
 	$subject = 'Booking Request from ' . $customer->surname . ' for ' . $pet_names . ' - ';
 	if ($availability == 0) {
-		$subject .= 'Booking Created';
+		if ($deposit > 0) {
+			$subject .= 'Deposit Paid';
+		} else {
+			$subject .= 'Booking Created';
+		}
 	} else if ($availability == 1) {
 		$subject .= 'Provisional Booking Created - Must Check';
 	} else if ($availability == 2) {
@@ -376,6 +429,7 @@ function check_booking_confirmation( $form ) {
 	
 	return $form;
 }
+add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
 
 function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	global $petadmin, $wp;
@@ -723,4 +777,17 @@ function populate_booking_form ($form) {
 	
 	return $form;
 }
+add_filter( 'gform_pre_render_25', 'populate_booking_form' );
+
+function booking_followup_confirmation( $confirmation ) {
+	
+	$url = parse_url($confirmation['redirect']);
+	$query = $url['query'];
+	parse_str($query, $v);
+	
+	return $confirmation;	
+}
+add_filter( 'gform_confirmation_26', 'booking_followup_confirmation', 10, 4 );
+
+
 

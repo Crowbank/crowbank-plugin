@@ -302,6 +302,10 @@ table th[class*="col-"] {
   background-color: #FBCC0C;
 }
 
+.special_class {
+  background-color: #FF0000;
+}
+
 .dogs_header {
   border-bottom: solid 1px;
   border-top: solid 2px;

@@ -319,6 +319,7 @@ function populate_pet_form ( $form ) {
 	
 	return $form;
 }
+add_filter( 'gform_pre_render_27', 'populate_pet_form');
 
 function customer_submission( $entry, $form ) {
 	global $petadmin, $petadmin_db;
@@ -357,6 +358,7 @@ function customer_submission( $entry, $form ) {
 	
 	crowbank_add_alert('Thank you for updating your contact details', 'info');
 }
+add_action( 'gform_after_submission_30', 'customer_submission', 10, 2 );
 
 function pet_submission( $entry, $form ) {
 	global $petadmin, $petadmin_db;
@@ -436,6 +438,7 @@ function pet_submission( $entry, $form ) {
 	
 	crowbank_add_alert($msg, 'info');
 }
+add_action( 'gform_after_submission_27', 'pet_submission', 10, 2 );
 
 function populate_customer_form ( $form ) {
 	$customer = get_customer();
@@ -455,6 +458,7 @@ function populate_customer_form ( $form ) {
 	}
 	return $form;	
 }
+add_filter( 'gform_pre_render_30', 'populate_customer_form');
 
 function populate_months( $form ) {
 	$months = array (1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
@@ -488,6 +492,7 @@ function populate_months( $form ) {
 	
 	return $form;
 }
+add_filter( 'gform_pre_render_23', 'populate_months' );
 
 function crowbank_check_new_user( $user_id, $args ) {
 	global $ultimatemember, $petadmin;
@@ -584,14 +589,6 @@ function crowbank_account_pre_update_profile( $changes, $id ) {
 	}
 }
 
-add_filter( 'gform_pre_render_23', 'populate_months' );
-add_filter( 'gform_pre_render_23', 'populate_months' );
-add_filter( 'gform_pre_render_25', 'populate_booking_form' );
-add_filter( 'gform_pre_render_26', 'check_booking_confirmation' );
-add_filter( 'gform_pre_render_27', 'populate_pet_form');
-add_filter( 'gform_pre_render_30', 'populate_customer_form');
-add_action( 'gform_after_submission_27', 'pet_submission', 10, 2 );
-add_action( 'gform_after_submission_30', 'customer_submission', 10, 2 );
 
 add_filter('gform_field_value_cust_forename', function() { return current_customer_field('cust_forename'); });
 add_filter('gform_field_value_cust_surname', function() { return current_customer_field('cust_surname'); });
@@ -604,8 +601,6 @@ add_filter('gform_field_value_cust_telno_mobile', function() { return current_cu
 add_filter('gform_field_value_cust_telno_mobile2', function() { return current_customer_field('cust_telno_mobile2'); });
 /* add_action('um_account_pre_update_profile', 'crowbank_account_pre_update_profile'); */
 
-
-add_action('um_after_account_general', 'show_extra_fields', 100);
 function show_extra_fields() {
 	
 	global $ultimatemember;
@@ -625,6 +620,7 @@ function show_extra_fields() {
 			
 			echo $output;
 }
+add_action('um_after_account_general', 'show_extra_fields', 100);
 
 function get_custom_fields( $fields ) {
 	global $ultimatemember;

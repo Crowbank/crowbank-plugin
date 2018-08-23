@@ -22,6 +22,7 @@ class Booking {
 	public $has_cats = FALSE;
 	public $outstanding_amt;
 	public $pet_names;
+	public $original_booking;
 	
 	public function __construct($row) {
 		global $petadmin;
@@ -40,6 +41,7 @@ class Booking {
 		$this->memo = $row['bk_memo'];
 		$this->status = $row['bk_status'];
 		$this->deluxe = $row['bk_deluxe'];
+		$this->original_booking = null;
 		if ($this->status == '') {
 			$this->status = ' ';
 		}
@@ -340,6 +342,7 @@ from my_booking";
 	}
 	
 	public function create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comments, $status, $msg_no, $cost_estimate) {
+		global $petadmin;
 		global $petadmin_db;
 		/* 
 		 * Create a new temporary booking on mysql. All relevant tables are populated, with a separate mechanism maintaining the records
@@ -352,7 +355,7 @@ from my_booking";
 		$sql .= 'bk_gross_amt, bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
 		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
 		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
-		$sql .= ", 0.0, '" . esc_sql($comments) . "', '', 'R', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
+		$sql .= ", 0.0, '" . esc_sql($comments) . "', '', $status, '" . date('Y-m-d') . "', " . $is_deluxe . ')';
 		
 		$petadmin_db->execute($sql);
 		
@@ -362,6 +365,56 @@ from my_booking";
 			
 			$petadmin_db->execute($sql);
 		}
+		
+		$sql = "Select bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time,
+bk_end_time, bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe
+from my_booking where bk_no = " . -$msg_no;
+		
+		$sql2 = "Select bi_bk_no, bi_pet_no, bi_checkin_time, bi_checkout_time from my_bookingitem where bi_bk_no = " . -$msg_no;
+
+		$result = $petadmin_db->execute($sql);
+		
+		foreach($result as $row) {
+			$booking = new Booking($row);
+			$this->count++;
+			$this->by_no[$booking->no] = $booking;
+			
+			if ($booking->status != ' ' and $booking->status != 'V' and $booking->status != '') {
+				continue;
+			}
+			$start_ts = $booking->start_date->getTimestamp();
+			$end_ts = $booking->end_date->getTimestamp();
+			
+			if (!array_key_exists($start_ts, $this->by_start_date)) {
+				$this->by_start_date[$start_ts] = array();
+			}
+			
+			if (!array_key_exists($end_ts, $this->by_end_date)) {
+				$this->by_end_date[$end_ts] = array();
+			}
+			
+			$this->by_start_date[$start_ts][]  = $booking;
+			$this->by_end_date[$end_ts][]  = $booking;	
+		}
+		
+		$result = $petadmin_db->execute($sql2);
+		
+		foreach($result as $row) {
+			$bk_no = $row['bi_bk_no'];
+			$pet_no = $row['bi_pet_no'];
+			$checkin = $row['bi_checkin_time'];
+			$checkout = $row['bi_checkout_time'];
+			try {
+				$pet = $petadmin->pets->get_by_no($pet_no);
+				if ($booking) {
+					$booking->add_pet($pet, $checkin, $checkout);
+					$pet->add_booking($booking);
+				}
+			} catch(Exception $e) {
+				crowbank_error($e->getMessage());
+			}	
+		}
+		return $booking;
 	}
 	
 	public function find_overlapping($customer, $start_date, $end_date) {

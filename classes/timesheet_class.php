@@ -79,6 +79,7 @@ class Timesheets {
 		'Volunteer' => 'volunteer_class',
 		'U' => 'unavailable_class',
 		'H' => 'vacation_class',
+		'S' => 'special_class',
 		' ' => ''
 	);
 	
