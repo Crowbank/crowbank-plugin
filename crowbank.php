@@ -50,6 +50,16 @@ function crowbank_log($msg, $severity = 0) {
 				array('%s', '%s', '%s', '%d'));
 }
 
+function crowbank_localid($attr = array('type' => '')) {
+	/* return a new, unique, id */
+	global $wpdb;
+	
+	$type = $attr['type'];
+	
+	$wpdb->insert('crwbnk_localid', array('type' => $type));
+	return $wpdb->insert_id;
+}
+
 function crowbank_error($msg) {
 	crowbank_log($msg, 2);
 	return '<div class="crowbank-error">' . $msg . '</div>';
@@ -404,7 +414,8 @@ function pet_submission( $entry, $form ) {
 	$msg->flush();
 	
 	if ( !$pet_no ) {
-		$pet_no = -$msg->id;
+		$id = crowbank_localid(array('type' => 'Pet'));
+		$pet_no = -$id;
 	}
 	
 	if ( !empty( $entry[17] ) ) {

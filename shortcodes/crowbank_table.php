@@ -572,7 +572,7 @@ function crowbank_availability($attr) {
 	$r .= '<tr><td>Morning</td><td>' . $inventory->occupied('morning', $species) . '</td>';
 	$r .= '<td>' . ($capacity - $inventory->occupied('morning', $species)) . '</td>';
 	$r .= '<td></td><td></td></tr>';
-	$r .= '<tr ' . ($inventory->occupied('am', $species) > $capacity ? 'class="alert">' : '>');
+	$r .= '<tr ' . ($inventory->occupied('am', $species) > $capacity ? 'class="alert alert-warning">' : '>');
 	$r .= '<td>AM</td><td>' . $inventory->occupied('am', $species) . '</td>';
 	$r .= '<td>' . ($capacity - $inventory->occupied('am', $species)) . '</td>';
 	$r .= '<td>' . $inventory->pet_inout('in', 'am', $species) . '</td>';
@@ -580,7 +580,7 @@ function crowbank_availability($attr) {
 	$r .= '<tr><td>Noon</td><td>' . $inventory->occupied('noon', $species) . '</td>';
 	$r .= '<td>' . ($capacity - $inventory->occupied('noon', $species)) . '</td>';
 	$r .= '<td></td><td></td></tr>';
-	$r .= '<tr ' . ($inventory->occupied('pm', $species) > $capacity ? 'class="alert">' : '>');
+	$r .= '<tr ' . ($inventory->occupied('pm', $species) > $capacity ? 'class="alert alert-warning">' : '>');
 	$r .= '<td>PM</td><td>' . $inventory->occupied('pm', $species) . '</td>';
 	$r .= '<td>' . ($capacity - $inventory->occupied('pm', $species)) . '</td>';
 	$r .= '<td>' . $inventory->pet_inout('in', 'pm', $species) . '</td><td>' . $inventory->pet_inout('out', 'pm', $species) . '</td></tr>';

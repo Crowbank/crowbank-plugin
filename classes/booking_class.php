@@ -143,11 +143,15 @@ class Booking {
 		return $deposit;
 	}
 	
-	public function deposit_url() {
+	public function deposit_url($callback = '') {
 		$deposit = $this->deposit();
 		
 		if ($deposit) {
-			$url = "https://secure.worldpay.com/wcc/purchase?instId=1094566&cartId=PBL-" . $this->no . "&amount=" . number_format($deposit + 1.20, 2) . "&currency=GBP&";
+			$url = "https://secure.worldpay.com/wcc/purchase?instId=1094566&cartId=PBL-";
+			if ($this->status == 'D') {
+				$url .= 'D';
+			}
+			$url .= abs($this->no) . "&amount=" . number_format($deposit + 1.20, 2) . "&currency=GBP&";
 			$url .= "desc=Deposit+for+Crowbank+booking+" . $this->no . "+for+" . htmlspecialchars($this->pet_names()) . "&accId1=CROWBANKPETBM1&testMode=0";
 			$url .= '&name=' . htmlspecialchars($this->customer->display_name());
 			
@@ -176,6 +180,11 @@ class Booking {
 				}
 				$url .= '&tel=' . htmlspecialchars($phone);
 			}
+			
+			if ($callback != '') {
+				$url .= '&MC_callback=' . $callback;
+			}
+			
 	        return $url;
 		} else {
 			return '';
@@ -211,7 +220,13 @@ class Booking {
 		$petadmin_db->execute($sql);
 	}
 	
-	public function update($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate) {
+	public function update_from_draft($draft_booking) {
+		$this->update($draft_booking->pets, $draft_booking->start_date, $draft_booking->start_time, $draft_booking->end_date,
+				$draft_booking->end_time, $draft_booking->is_deluxe, $draft_booking->comments, $draft_booking->status,
+				$draft_booking->cost_estimate, $draft_booking->bk_paid_amt);	
+	}
+	
+	public function update($pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate, $paid_amt = 0.0) {
 		global $petadmin_db;
 		
 		$this->pets = array();
@@ -234,7 +249,7 @@ class Booking {
 		
 		$sql = "update my_booking set bk_start_date = '" . $start_time->format('Y-m-d') . "', bk_start_time = '" . $this->start_time;
 		$sql .= "', bk_end_date = '" . $end_date->format('Y-m-d') . "', bk_end_time = '" . $this->end_time . "', bk_memo = '";
-		$sql .= $comment . "', bk_gross_amt = " . $cost_estimate . ", bk_deluxe = " . $is_deluxe;
+		$sql .= $comment . "', bk_gross_amt = " . $cost_estimate . ", bk_deluxe = " . $is_deluxe . ", bk_paid_amt = " . $paid_amt;
 		$sql .= ' where bk_no = ' . $this->no;
 		
 		$petadmin_db->execute($sql);
@@ -341,7 +356,8 @@ from my_booking";
 		}
 	}
 	
-	public function create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comments, $status, $msg_no, $cost_estimate) {
+	public function create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time, $is_deluxe, $comments, $status, $cost_estimate,
+			$bk_no) {
 		global $petadmin;
 		global $petadmin_db;
 		/* 
@@ -351,69 +367,41 @@ from my_booking";
 		 * Only my_booking and my_bookingitem need to be updated.
 		 */
 		
+		$id = crowbank_localid(['type' => 'booking']);
+		
 		$sql = 'insert into crowbank_petadmin.my_booking (bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time, bk_end_time, ';
 		$sql .= 'bk_gross_amt, bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
-		$sql .= -$msg_no . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
+		$sql .= -$id . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
 		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
-		$sql .= ", 0.0, '" . esc_sql($comments) . "', '', $status, '" . date('Y-m-d') . "', " . $is_deluxe . ')';
+		$sql .= ", 0.0, '" . esc_sql($comments) . "', '";
+		if ($bk_no != 0) {
+			$sql .= $bk_no;
+		}
+		$sql .= "', '" . $status . "', '" . date('Y-m-d') . "', " . $is_deluxe . ')';
 		
 		$petadmin_db->execute($sql);
 		
 		foreach ($pets as $pet) {
 			$sql = 'insert into crowbank_petadmin.my_bookingitem (bi_bk_no, bi_pet_no, bi_checkin_date, bi_checkin_time, bi_checkout_date, bi_checkout_time)';
-			$sql .= ' values (' . -$msg_no . ', ' . $pet->no . ", '', '', '', '')";
+			$sql .= ' values (' . -$id . ', ' . $pet->no . ", '', '', '', '')";
 			
 			$petadmin_db->execute($sql);
 		}
 		
-		$sql = "Select bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time,
-bk_end_time, bk_gross_amt, bk_paid_amt, bk_notes, bk_memo, bk_status, bk_create_date, bk_deluxe
-from my_booking where bk_no = " . -$msg_no;
+		$row = array('bk_no' => -$id, 'bk_cust_no' => $customer->no, 'bk_start_date' => $start_date->format('Y-m-d'),
+				'bk_end_date' => $end_date->format('Y-m-d'), 'bk_start_time' => time_slot_to_time($start_time, 'in'),
+				'bk_end_time' => time_slot_to_time($end_time, 'out'), 'bk_gross_amt' => $cost_estimate,
+				'bk_paid_amt' => 0.0, 'bk_notes' => '', 'bk_memo' => $comments, 'bk_status' => $status, 'bk_deluxe' => $is_deluxe,
+				'bk_create_date' => (new DateTime())->format('Y-m-d'));
+		$booking = new Booking($row);
 		
-		$sql2 = "Select bi_bk_no, bi_pet_no, bi_checkin_time, bi_checkout_time from my_bookingitem where bi_bk_no = " . -$msg_no;
-
-		$result = $petadmin_db->execute($sql);
-		
-		foreach($result as $row) {
-			$booking = new Booking($row);
-			$this->count++;
-			$this->by_no[$booking->no] = $booking;
-			
-			if ($booking->status != ' ' and $booking->status != 'V' and $booking->status != '') {
-				continue;
-			}
-			$start_ts = $booking->start_date->getTimestamp();
-			$end_ts = $booking->end_date->getTimestamp();
-			
-			if (!array_key_exists($start_ts, $this->by_start_date)) {
-				$this->by_start_date[$start_ts] = array();
-			}
-			
-			if (!array_key_exists($end_ts, $this->by_end_date)) {
-				$this->by_end_date[$end_ts] = array();
-			}
-			
-			$this->by_start_date[$start_ts][]  = $booking;
-			$this->by_end_date[$end_ts][]  = $booking;	
+		foreach ($pets as $pet) {
+			$booking->add_pet($pet, '', '');
 		}
 		
-		$result = $petadmin_db->execute($sql2);
-		
-		foreach($result as $row) {
-			$bk_no = $row['bi_bk_no'];
-			$pet_no = $row['bi_pet_no'];
-			$checkin = $row['bi_checkin_time'];
-			$checkout = $row['bi_checkout_time'];
-			try {
-				$pet = $petadmin->pets->get_by_no($pet_no);
-				if ($booking) {
-					$booking->add_pet($pet, $checkin, $checkout);
-					$pet->add_booking($booking);
-				}
-			} catch(Exception $e) {
-				crowbank_error($e->getMessage());
-			}	
-		}
+		$this->count++;
+		$this->by_no[$booking->no] = $booking;
+			
 		return $booking;
 	}
 	

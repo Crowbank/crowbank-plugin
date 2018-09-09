@@ -53,13 +53,17 @@ function crowbank_item($attr = [], $content = null, $tag = '') {
 		return crowbank_edit_customer($attr);
 	elseif ($type == 'owner-holiday')
 		return crowbank_owner_holiday($attr);
+	elseif ($type == 'localid')
+		return crowbank_localid($attr) . '<br>';
 	elseif ($type == 'alerts') {
 		$default = $attr['default'];
 		return crowbank_show_alerts($default);
 	}
+	elseif ($type == 'display-post')
+		return crowbank_display_post();
 	elseif ($type == 'test-message')
 		return crowbank_test_message($attr);
-		else
+	else
 		return crowbank_error("Unknown crowbank_item type $type");
 }
 add_shortcode('crowbank_item', 'crowbank_item');
@@ -209,7 +213,6 @@ function crowbank_owner_holiday($attr) {
 	global $petadmin;
 	
 	$date = get_daily_date();
-	
 }
 
 function crowbank_test_message($attr) {
@@ -218,4 +221,37 @@ function crowbank_test_message($attr) {
 	$result = $msg->send();
 	
 	echo 'Sent message, result: ' . $result . '<br>';
+}
+
+function crowbank_display_post($attr) {
+	$r = '<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+	<div class="w3-container">';
+			
+	$cart = $_REQUEST['cartId'];
+	$amount = $_REQUEST['cost'];
+	preg_match_all('/PBL-(\d+)/', $cart, $matches);
+		
+	$bk_no = $matches[1][0];
+		
+	$r .= 'Thank you for paying the ' . $_REQUEST['authAmountString'] . ' deposit<br>';
+	$r .= 'Your booking #' . $bk_no . ' is now confirmed<br>';
+	$r .= '<a href="http://dev.crowbankkennels.co.uk/my" class="w3-btn w3-blue">Return to Crowbank Home Screen</a>';
+	$r .= '</div>
+		
+<div class="w3-container">
+<h1>SERVER</h1>
+<table class="w3-table w3-striped w3-border">
+<thead>
+<th>Key</th>
+<th>Value</th>
+</thead>
+<tbody>';
+	
+	foreach ($_REQUEST as $key => $value) {
+		$r .= '<tr><td>' . $key . '</td><td>' . $value . '</td></tr>';
+	}
+
+	$r .= '</tbody></table></div>';
+	
+	return $r;
 }

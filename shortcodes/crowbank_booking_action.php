@@ -295,23 +295,25 @@ function check_booking_confirmation( $form ) {
 		$overlapping = $petadmin->bookings->find_overlapping($customer, $start_date, $end_date);
 	}
 	
-	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers,
-			'start_date' => $start_date->format('Ymd'), 'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'),
-			'end_time' => $end_time, 'deluxe' => $is_deluxe, 'comment' => $comment, 'availability' => $availability,
-			'cost_estimate' => $cost_estimate, 'status' => 'D', 'overlapping' => $overlapping]);
-	
-	$msg->flush();
-	
 	$draft_booking = $petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time,
-			$is_deluxe, $comment, 'D', $msg->id, $cost_estimate);
+			$is_deluxe, $comment, 'D', $cost_estimate);
+	
+	foreach ( $form['fields'] as &$field ) {
+		if ( $field->label == 'Draft Booking Number') {
+			$field->defaultValue = $draft_booking->no;
+		}
+	}
 	
 	if ($booking) {
 		$draft_booking->original_booking = $booking;
 	}
 	
 	$deposit = $draft_booking->deposit();
+	$deposit_url = '';
 	if ($deposit > 0.0) {
 		/* need to require deposit */
+		$callback = 'http://37.19.30.17/wordpress/booking-request-followup';
+		$deposit_url = $draft_booking->deposit_url($callback);
 	}
 	
 	$r = '<div class="booking-confirmation"><table class="table"><tbody>';
@@ -395,13 +397,17 @@ function check_booking_confirmation( $form ) {
 	if ($availability == 0) {
 		if ($deposit > 0) {
 			$subject .= 'Deposit Paid';
+			$status = 'C';
 		} else {
 			$subject .= 'Booking Created';
+			$status = '';
 		}
 	} else if ($availability == 1) {
 		$subject .= 'Provisional Booking Created - Must Check';
+		$status = 'P';
 	} else if ($availability == 2) {
 		$subject .= 'Standby Booking Created';
+		$status = 'S';
 	}
 	
 	foreach ( $form['fields'] as &$field ) {
@@ -425,6 +431,22 @@ function check_booking_confirmation( $form ) {
 		if ( $field->type == 'hidden' and $field->label == 'Pet Names') {
 			$field->defaultValue = $pet_names;
 		}
+		
+		if ( $field->type == 'hidden' and $field->label == 'Draft Booking Number') {
+			$field->defaultValue = $draft_booking->no;
+		}
+		
+		if ( $field->type == 'hidden' and $field->label == 'Deposit') {
+			$field->defaultValue = $deposit;
+		}
+		
+		if ( $field->type == 'hidden' and $field->label == 'Deposit URL') {
+			$field->defaultValue = $deposit_url;
+		}
+		
+		if ( $field->type == 'hidden' and $field->label == 'Status') {
+			$field->defaultValue = $status;
+		}
 	}
 	
 	return $form;
@@ -437,12 +459,18 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	/*
 	 * This function is called *after* the customer submitted the booking confirmation form.
 	 * It is invoked as part of the form Confirmation, i.e. all relevant fields are populated in the GET object.
+	 * Alternatively, it can be invoked by the callback from WorldPay deposit payment
 	 * It is also invoked after the form Notification, i.e. an email message was sent to Crowbank, and the entry added to the database.
+	 *
+	 * Before this function is called, a draft booking will have been created.
 	 * 
-	 * The purpose of this function, then, is to create a temporary booking entry that allows the customer to see an immediate
-	 * feedback of his request. This booking has the special status 'R' for requested.
+	 * This function converts the draft booking into a normal booking, with one of a few status conditions:
+	 * 1. If a deposit has just been paid, a 'C' (confirmed) booking can be created
+	 * 2. If a deposit was not required, but availability is good, a '' (normal) booking is created.
+	 * 3. If availability is limited, a 'P' (provisional) booking is created.
+	 * 4. If there is no availability, a 'S' (standby) booking is created
 	 * 
-	 * It also sends an appropriate message to Crowbank, facilitating the creation (or modification) of the actual booking
+	 * It also sends an appropriate message to Crowbank, facilitating the creation (or modification) of the actual booking locally
 	 */
 	
 	/*
@@ -459,6 +487,16 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	 * cost_estimate=123.45
 	 */
 	
+	
+	/* determine whether we have come here as callback from WorldPay deposit payment */
+	
+	$s = '';
+	
+	$booking = null;
+	$bk_no = 0;
+	
+	$paid_amt = 0.0;
+	
 	$availability_responses = array('A new booking will be created, and you should receive an email confirmation shortly',
 			'We will have to check availability, and get back to you',
 			'We will create a standby booking for you, and will get back in touch as soon as space becomes available');
@@ -467,10 +505,104 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	
 	$customer = get_customer();
 	
-	$booking = null;
-	$bk_no = 0;
+	if (isset($_REQUEST['authAmountString'])) {
+		$cart = $_REQUEST['cartId'];
+		$paid_amt = $_REQUEST['cost'];
+		preg_match_all('/PBL-D(\d+)/', $cart, $matches);
+		
+		$draft_bk_no = -1 * $matches[1][0];
+
+		$s = 'Thank you for paying the ' . $_REQUEST['authAmountString'] . ' deposit - ';
+		$s .= 'Your booking is now confirmed';
+		
+		$status = 'C';
+		
+	} else {
+		if (isset($_REQUEST['pets'])) {
+			$pet_numbers = htmlspecialchars_decode($_REQUEST['pets']);
+		} else { 
+			return crowbank_error('Must select at least one pet');
+		}
 	
-	if (isset($_REQUEST['bk_no'])) {
+		$pets_array = explode(', ', $pet_numbers);
+		$pet_names = '';
+		$pets = array();
+		
+		foreach ($pets_array as $pet_no) {
+			$pet = $petadmin->pets->get_by_no($pet_no);
+			if (!$pet)
+				return crowbank_error('Unable to find pet #' . $pet_no);
+			
+			$pets[] = $pet;
+		}
+		
+		if (isset($_REQUEST['start_date'])) {
+			$start_date = new DateTime(htmlspecialchars_decode($_REQUEST['start_date']));
+		} else {
+			return crowbank_error('Invalid or missing start date');
+		}
+		
+		if (isset($_REQUEST['start_time'])) {
+			$start_time = $_REQUEST['start_time'];
+		} else {
+			return crowbank_error('Invalid or missing start time');
+		}
+		
+		if (isset($_REQUEST['end_date'])) {
+			$end_date = new DateTime(htmlspecialchars_decode($_REQUEST['end_date']));
+		} else {
+			return crowbank_error('Invalid or missing end date');
+		}
+		
+		if (isset($_REQUEST['end_time'])) {
+			$end_time = $_REQUEST['end_time'];
+		} else {
+			return crowbank_error('Invalid or missing end time');
+		}
+		
+		if (isset($_REQUEST['status'])) {
+			$status = $_REQUEST['status'];
+		} else {
+			return crowbank_error('Invalid or missing status');
+		}
+		
+		if (isset($_REQUEST['kennel'])) {
+			$kennel = $_REQUEST['kennel'];
+		} else {
+			$kennel = 'Standard';
+		}
+		
+		$comment = '';
+		if (isset($_REQUEST['comment'])) {
+			$comment = htmlspecialchars_decode($_REQUEST['comment']);
+		}
+		
+		if (isset($_REQUEST['availability'])) {
+			$availability = $_REQUEST['availability'];
+		} else {
+			$availability = 1;
+		}
+		
+		if (isset($_REQUEST['cost_estimate'])) {
+			$cost_estimate = $_REQUEST['cost_estimate'];
+		}
+	
+		if (isset($_REQUEST['draft_bk_no'])) {
+			$draft_bk_no = 	$_REQUEST['draft_bk_no'];
+		} else {
+			$draft_bk_no = 0;
+		}
+	}
+
+	$draft_booking = $petadmin->bookings->get_by_no($draft_bk_no);
+	if (!$draft_booking) {
+		return crowbank_error('Cannot find draft booking (' . $draft_bk_no . ')');
+	}
+	
+	if ($draft_bk_no->notes) {
+		$bk_no = intval($draft_bk_no->notes);
+		$booking = $petadmin->bookings->get_by_no($bk_no);
+	} elseif (isset($_REQUEST['bk_no'])) {
 		$bk_no = $_REQUEST['bk_no'];
 		if ($bk_no) {
 			$booking = $petadmin->bookings->get_by_no($bk_no);
@@ -480,69 +612,9 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 		}
 	}
 
-	if (isset($_REQUEST['pets'])) {
-		$pet_numbers = htmlspecialchars_decode($_REQUEST['pets']);
-	} else { 
-		return crowbank_error('Must select at least one pet');
+	if ($booking and $booking->paid_amt > 0.0) {
+		$paid_amt = $booking->paid_amt;
 	}
-
-	$pets_array = explode(', ', $pet_numbers);
-	$pet_names = '';
-	$pets = array();
-	
-	foreach ($pets_array as $pet_no) {
-		$pet = $petadmin->pets->get_by_no($pet_no);
-		if (!$pet)
-			return crowbank_error('Unable to find pet #' . $pet_no);
-		
-		$pets[] = $pet;
-	}
-	
-	if (isset($_REQUEST['start_date'])) {
-		$start_date = new DateTime(htmlspecialchars_decode($_REQUEST['start_date']));
-	} else {
-		return crowbank_error('Invalid or missing start date');
-	}
-	
-	if (isset($_REQUEST['start_time'])) {
-		$start_time = $_REQUEST['start_time'];
-	} else {
-		return crowbank_error('Invalid or missing start time');
-	}
-	
-	if (isset($_REQUEST['end_date'])) {
-		$end_date = new DateTime(htmlspecialchars_decode($_REQUEST['end_date']));
-	} else {
-		return crowbank_error('Invalid or missing end date');
-	}
-	
-	if (isset($_REQUEST['end_time'])) {
-		$end_time = $_REQUEST['end_time'];
-	} else {
-		return crowbank_error('Invalid or missing end time');
-	}
-	
-	if (isset($_REQUEST['kennel'])) {
-		$kennel = $_REQUEST['kennel'];
-	} else {
-		$kennel = 'Standard';
-	}
-	
-	$comment = '';
-	if (isset($_REQUEST['comment'])) {
-		$comment = htmlspecialchars_decode($_REQUEST['comment']);
-	}
-	
-	if (isset($_REQUEST['availability'])) {
-		$availability = $_REQUEST['availability'];
-	} else {
-		$availability = 1;
-	}
-	
-	if (isset($_REQUEST['cost_estimate'])) {
-		$cost_estimate = $_REQUEST['cost_estimate'];
-	}
-	
 	if ($bk_no) {
 		$msg_type = 'booking-update';
 	} else {
@@ -554,15 +626,7 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	else 
 		$is_deluxe = 0;
 
-	
-	if ($availability == 0) {
-		$status = '';
-	} else if ($availability == 1) {
-		$status = 'P';
-	} else if ($availability == 2) {
-		$status = 'S';
-	}
-	
+
 	/*
 	 * Check for duplicate forms
 	 */
@@ -576,7 +640,8 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 	$msg = new Message($msg_type, ['cust_no' => $customer->no, 'bk_no' => $bk_no, 'pets' => $pet_numbers,
 			'start_date' => $start_date->format('Ymd'), 'start_time' => $start_time, 'end_date' => $end_date->format('Ymd'),
 			'end_time' => $end_time, 'deluxe' => $is_deluxe, 'comment' => $comment, 'availability' => $availability,
-			'cost_estimate' => $cost_estimate, 'status' => $status, 'overlapping' => $overlapping]);
+			'cost_estimate' => $cost_estimate, 'status' => $status, 'overlapping' => $overlapping, 'status' => $status,
+			'paid_amt' => $paid_amt, 'draft_no' => $draft_bk_no]);
 	
 	$msg->flush();
 	
@@ -588,7 +653,7 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 			echo crowbank_error($msg);
 		} else {
 			$petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time,
-				$end_date, $end_time, $is_deluxe, $comment, $status, $msg->id, $cost_estimate);
+				$end_date, $end_time, $is_deluxe, $comment, $status, $cost_estimate);
 		}
 	}
 	
@@ -598,6 +663,8 @@ function crowbank_booking_confirmation($attr = [], $content = null, $tag = '') {
 		$r = 'Your booking request has been processed.<br>';
 		$r .= $availability_responses[$availability];
 	}
+	
+	$r .= '<br><a href="http://dev.crowbankkennels.co.uk/my" class="w3-btn w3-blue">Return to Crowbank Home Screen</a>';
 	
 	return $r;
 }
@@ -780,11 +847,19 @@ function populate_booking_form ($form) {
 add_filter( 'gform_pre_render_25', 'populate_booking_form' );
 
 function booking_followup_confirmation( $confirmation ) {
+	global $petadmin;
 	
 	$url = parse_url($confirmation['redirect']);
 	$query = $url['query'];
 	parse_str($query, $v);
 	
+	$draft_bk_no = $v['draft_bk_no'];
+	$deposit = $v['deposit'];
+	$deposit_url = $v['deposit_url'];
+	
+	if ($deposit > 0.0 and $deposit_url <> '') {
+		$confirmation = array('redirect' => $deposit_url);
+	}
 	return $confirmation;	
 }
 add_filter( 'gform_confirmation_26', 'booking_followup_confirmation', 10, 4 );

@@ -63,7 +63,7 @@ class Message {
 		
 		$msg_str = json_encode($msg);
 		
-		$ch = curl_init('http://http://37.19.30.17:81/local_api/message.php');
+		$ch = curl_init('http://37.19.30.17:81/local_api/message.php');
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $msg_str);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

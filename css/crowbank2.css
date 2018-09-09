@@ -942,7 +942,7 @@ input[type=radio   ]:not(old) + label{
 }
 
 .alert-warning {
-	background-color: ##ff9800;
+	background-color: #ff9800;
 }
 
 .alert-info {
