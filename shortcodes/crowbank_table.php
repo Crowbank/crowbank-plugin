@@ -608,7 +608,7 @@ function crowbank_employee_data($attr) {
 	$r .= '<tr><td>Email:</td><td>' . $employee->email . '</td></tr>';
 	$r .= '<tr><td>Facebook:</td><td>' . '<a href="http://www.facebook.com/' . $employee->facebook . '">' . $employee->facebook . '</a></td></tr>';
 	$r .= '<tr><td>Mobile:</td><td>' . $employee->mobile . '</td></tr>';
-	$r .= '<tr><td>Shared Folder:</td><td><a href="' . $employee->shared . '" target="_blank">Click Here</td></tr>';
+	$r .= '<tr><td>Document Folder:</td><td><a href="' . $employee->shared . '" target="_blank">Click Here</td></tr>';
 	$r .= '</tbody></table></div>';
 
 	return $r;
