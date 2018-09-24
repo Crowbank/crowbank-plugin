@@ -12,6 +12,7 @@ class Employee {
 	public $end_date;
 	public $order;
 	public $mobile;
+	public $shared;
 	
 	public function __construct($row) {
 		$this->no = (int) $row['emp_no'];
@@ -26,6 +27,7 @@ class Employee {
 		$this->start_date = new DateTime($row['emp_start_date']);
 		$this->end_date = new DateTime($row['emp_end_date']);
 		$this->order = (int) $row['emp_order'];
+		$this->shared = $row['emp_shared'];
 	}
 }
 
@@ -43,7 +45,7 @@ class Employees {
 	public function load($force = FALSE) {
 		global $petadmin_db;
 		$sql = "Select emp_no, emp_forename, emp_surname, emp_nickname, emp_rank, emp_iscurrent,
-emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobile from my_employee";
+emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobile, emp_shared from my_employee";
 		if ($this->isLoaded and ! $force) {
 			return;
 		}
