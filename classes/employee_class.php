@@ -13,6 +13,8 @@ class Employee {
 	public $order;
 	public $mobile;
 	public $shared;
+	public $payslips = array();
+	public $deductions = array();
 	
 	public function __construct($row) {
 		$this->no = (int) $row['emp_no'];
@@ -28,6 +30,48 @@ class Employee {
 		$this->end_date = new DateTime($row['emp_end_date']);
 		$this->order = (int) $row['emp_order'];
 		$this->shared = $row['emp_shared'];
+	}
+	
+	private function add_deduction($year, $payslip, $deduction) {
+		if (!array_key_exists($deduction, $payslip) || $payslip[$deduction] == 0.0 || in_array($deduction, $this->deductions[$year]))
+			return;
+		
+			$this->deductions[$year][] = $deduction;
+	}
+	
+	public function add_payslip($row) {
+		$date = new DateTime($row['ew_date']);
+		$year = $date->Format("Y");
+		$month = $date->Format("M") + 0;
+		if ($month < 4) {
+			$year--;
+		}
+		if (!array_key_exists($year, $this->payslips)) {
+			$this->payslips[$year] = array();
+			$this->deductions[$year] = array();
+		}
+		$this->payslips[$year][$month] = $row;
+		$this->payslips[$key] = $row;
+		
+		foreach(['paye', 'nic', 'pension', 'studentloan'] as $deduction) {
+			$this->add_deduction($year, $row, $deduction);
+		}
+	}
+	
+	public function get_payslips($year) {
+		if (!array_key_exists($year, $this->payslips)) {
+			return $this->payslips[$year];
+		}
+		
+		return null;
+	}
+
+	public function get_deductions($year) {
+		if (!array_key_exists($year, $this->deductions)) {
+			return $this->deductions[$year];
+		}
+		
+		return null;
 	}
 }
 
@@ -72,6 +116,18 @@ emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobi
 				$this->current[$employee->no] = $employee;
 			}
 		}
+		
+		$sql = "Select ew_emp_nickname, ew_date, ew_rate, ew_hours, ew_holiday, ew_gross, ew_net, ew_paye, ew_nic, ew_studentloan, ew_pension from my_employeewage";
+		
+		$result = $petadmin_db->execute($sql);
+		
+		foreach($result as $row) {
+			$employee = $this->by_nickname[$row['ew_emp_nickname']];
+			if ($employee) {
+				$employee->add_payslip($row);
+			}
+		}
+		
 		$this->isLoaded = TRUE;
 	}
 	
