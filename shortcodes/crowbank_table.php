@@ -46,7 +46,7 @@ function crowbank_table($attr = [], $content = null, $tag = '') {
 
 	$attr = shortcode_atts([ 'type' => 'count', 'class' => '', 'cust_no' => 0, 'emp_no' => 0, 'title' => '',
 		'time' => 'future', 'function' => 'work', 'spec' => 'Dog', 'direction' => 'in',
-		'weeks' => 20, 'year' =>''], $attr, $tag);
+		'weeks' => 20, 'year' =>'', 'offset' => 0], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');
@@ -370,18 +370,12 @@ function crowbank_timesheet($attr) {
 	global $petadmin;
 
 	$weekstart = get_weekstart();
-
-	$week = new DateInterval('P7D');
-	$next_week = clone $weekstart;
-	$next_week->add($week);
-	$last_week = clone $weekstart;
-
-	if (!isset($petadmin->timesheets->weekly[$next_week->getTimestamp()])) {
-		$next_week = NULL;
-	}
-
-	if (!isset($petadmin->timesheets->weekly[$last_week->getTimestamp()])) {
-		$last_week = NULL;
+	
+	$offset = $attr['offset'];
+	
+	if ($offset) {
+		$offset_interval = new DateInterval('P' . 7 * $offset . 'D');
+		$weekstart->add($offset_interval);
 	}
 
 	return $petadmin->timesheets->display_week($weekstart);
@@ -665,22 +659,23 @@ function crowbank_employee_timesheets($attr) {
 }
 
 function crowbank_payslip_row($payslip, $deductions) {
-	$r = '<td>' . number_format($payslip['ew_hours'], 1) . '</td>';
-	$r .= '<td>' . number_format($payslip['ew_holiday'], 1) . '</td>';
-	$r .= '<td>' . number_format($payslip['ew_gross'], 2) . '</td>';
+	$r = '<td style="text-align:right">' . number_format($payslip['ew_hours'], 1) . '</td>';
+	$r .= '<td style="text-align:right">' . number_format($payslip['ew_holiday_earned'], 1) . '</td>';
+	$r .= '<td style="text-align:right">' . number_format($payslip['ew_holiday'], 1) . '</td>';
+	$r .= '<td style="text-align:right">£' . number_format($payslip['ew_gross'], 2) . '</td>';
 	if (in_array('paye', $deductions)) {
-		$r .= '<td>' . number_format($payslip['ew_paye'], 2) . '</td>';
+		$r .= '<td style="text-align:right">£' . number_format($payslip['ew_paye'], 2) . '</td>';
 	}
 	if (in_array('nic', $deductions)) {
-		$r .= '<td>' . number_format($payslip['ew_nic'], 2) . '</td>';
+		$r .= '<td style="text-align:right">£' . number_format($payslip['ew_nic'], 2) . '</td>';
 	}
 	if (in_array('studentloan', $deductions)) {
-		$r .= '<td>' . number_format($payslip['ew_studentloan'], 2) . '</td>';
+		$r .= '<td style="text-align:right">£' . number_format($payslip['ew_studentloan'], 2) . '</td>';
 	}
 	if (in_array('pension', $deductions)) {
-		$r .= '<td>' . number_format($payslip['ew_pension'], 2) . '</td>';
+		$r .= '<td style="text-align:right">£' . number_format($payslip['ew_pension'], 2) . '</td>';
 	}
-	$r .= '<td>' . number_format($payslip['ew_net'], 2) . '</td>';
+	$r .= '<td style="text-align:right">£' . number_format($payslip['ew_net'], 2) . '</td>';
 
 	return $r;
 }
@@ -688,6 +683,11 @@ function crowbank_employee_payslips($attr) {
 	global $petadmin;
 	
 	$employee = $attr['emp'];
+	
+	if (!$employee) {
+		return crowbank_error('No Employee');
+	}
+	
 	$year = date('Y');
 	$month = date('m') + 0;
 	if ($month < 4) {
@@ -701,11 +701,13 @@ function crowbank_employee_payslips($attr) {
 		return crowbank_error('No Payslips this year');
 	}
 	
-	$r = '<div style="overflow-x:auto;"><table class="table" style="border: solid 1px; ">
+	$r = '<div style="overflow-x:auto;"><div style="text-align: center"><span style="font-weight: bold">' . $year . ' - ' . ($year + 1) . '</span></div><br>';
+	$r .= '<table class="table" style="border: solid 1px; ">
 <thead style="text-align: left; font-weight: bold; ">
-<th style="width: 80px;">Month</th>
-<th style="width: 80px;">Hours Worked</th>
-<th style="width: 80px;">Holidays Earned</th>
+<th style="width: 70px;">Month</th>
+<th style="width: 60px;">Hours Worked</th>
+<th style="width: 60px;">Holidays Earned</th>
+<th style="width: 60px;">Holidays Taken</th>
 <th style="width: 80px;">Gross Pay</th>';
 	if (in_array('paye', $deductions)) {
 		$r .= '<th style="width: 80px;">PAYE</th>';
@@ -723,6 +725,7 @@ function crowbank_employee_payslips($attr) {
 	
 	$cumm = array(
 		'ew_hours' => 0.0,
+		'ew_holiday_earned' => 0.0,
 		'ew_holiday' => 0.0,
 		'ew_gross' => 0.0,
 		'ew_net' => 0.0,
@@ -731,7 +734,7 @@ function crowbank_employee_payslips($attr) {
 		'ew_studentloan' => 0.0,
 		'ew_pension' => 0.0
 		);
-	
+
 	foreach ($payslips as $month => $payslip) {
 		$r .= '<tr><td>' . MONTHS[$month] . '</td>' . crowbank_payslip_row($payslip, $deductions) . '</tr>';
 		foreach($cumm as $key => $value) {
@@ -739,7 +742,11 @@ function crowbank_employee_payslips($attr) {
 		}		
 	}
 	
-	$r .= '<tr><td>Total</td>' . crowbank_payslip_row($cumm, $deductions) . '</tr></tbody></table></div>';
+	$r .= '<tr style="font-weight: bold"><td>Total</td>' . crowbank_payslip_row($cumm, $deductions) . '</tr>';
+	
+	$holiday_remaining = $employee->get_holiday_remaining($year);
+	$in_days = floor($holiday_remaining / 4.5) / 2.0;
+	$r .= '<tr><td colspan="10">Holidays Remaining: ' . number_format($holiday_remaining, 1) . ' hours, or ' . $in_days . ' days</td></tr></tbody></table></div>';
 	
 	return $r;
 }

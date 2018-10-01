@@ -15,6 +15,7 @@ class Employee {
 	public $shared;
 	public $payslips = array();
 	public $deductions = array();
+	public $holiday_remaining = array();
 	
 	public function __construct($row) {
 		$this->no = (int) $row['emp_no'];
@@ -33,7 +34,8 @@ class Employee {
 	}
 	
 	private function add_deduction($year, $payslip, $deduction) {
-		if (!array_key_exists($deduction, $payslip) || $payslip[$deduction] == 0.0 || in_array($deduction, $this->deductions[$year]))
+		$field = 'ew_' . $deduction;
+		if (!array_key_exists($field, $payslip) || $payslip[$field] == 0.0 || in_array($deduction, $this->deductions[$year]))
 			return;
 		
 			$this->deductions[$year][] = $deduction;
@@ -42,16 +44,17 @@ class Employee {
 	public function add_payslip($row) {
 		$date = new DateTime($row['ew_date']);
 		$year = $date->Format("Y");
-		$month = $date->Format("M") + 0;
+		$month = $date->Format("m") + 0;
 		if ($month < 4) {
 			$year--;
 		}
 		if (!array_key_exists($year, $this->payslips)) {
 			$this->payslips[$year] = array();
 			$this->deductions[$year] = array();
+			$this->holiday_remaining[$year] = 0.0;
 		}
 		$this->payslips[$year][$month] = $row;
-		$this->payslips[$key] = $row;
+		$this->holiday_remaining[$year] += $row['ew_holiday_earned'] - $row['ew_holiday'];
 		
 		foreach(['paye', 'nic', 'pension', 'studentloan'] as $deduction) {
 			$this->add_deduction($year, $row, $deduction);
@@ -59,7 +62,7 @@ class Employee {
 	}
 	
 	public function get_payslips($year) {
-		if (!array_key_exists($year, $this->payslips)) {
+		if (array_key_exists($year, $this->payslips)) {
 			return $this->payslips[$year];
 		}
 		
@@ -67,8 +70,16 @@ class Employee {
 	}
 
 	public function get_deductions($year) {
-		if (!array_key_exists($year, $this->deductions)) {
+		if (array_key_exists($year, $this->deductions)) {
 			return $this->deductions[$year];
+		}
+		
+		return null;
+	}
+	
+	public function get_holiday_remaining($year) {
+		if (array_key_exists($year, $this->holiday_remaining)) {
+			return $this->holiday_remaining[$year];
 		}
 		
 		return null;
@@ -117,12 +128,12 @@ emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobi
 			}
 		}
 		
-		$sql = "Select ew_emp_nickname, ew_date, ew_rate, ew_hours, ew_holiday, ew_gross, ew_net, ew_paye, ew_nic, ew_studentloan, ew_pension from my_employeewage";
+		$sql = "Select ew_nickname, ew_date, ew_rate, ew_hours, ew_holiday_earned, ew_holiday, ew_gross, ew_net, ew_paye, ew_nic, ew_studentloan, ew_pension from vwemployeewage";
 		
 		$result = $petadmin_db->execute($sql);
 		
 		foreach($result as $row) {
-			$employee = $this->by_nickname[$row['ew_emp_nickname']];
+			$employee = $this->by_nickname[$row['ew_nickname']];
 			if ($employee) {
 				$employee->add_payslip($row);
 			}
