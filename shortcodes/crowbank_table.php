@@ -168,11 +168,13 @@ function crowbank_customer_data($attr) {
 	if (!$customer)
 		return crowbank_error('No customer specified');
 
+	$full_address = $customer->addr1 . ', ' . $customer->addr3 . ' ' . $customer->postcode;
+	$map_url = 'www.google.com/maps/dir/?api=1&origin=Crowbank+Kennels&destination=' . urlencode($full_address);
 	$r = '<div style="overflow-x:auto;"><table class="table">';
 	$r .= '<tbody><tr><td>Customer #</td><td>';
 	$r .= $customer->no . '</td></tr>';
 	$r .= '<tr><td>Name:</td><td>' . "$customer->title $customer->forename $customer->surname" . '</td></tr>';
-	$r .= '<tr><td>Address:</td><td>' . "$customer->addr1<br>$customer->addr3<br>$customer->postcode" . '</td></tr>';
+	$r .= '<tr><td>Address:</td><td><a href="' . $map_url . '">' . "$customer->addr1<br>$customer->addr3<br>$customer->postcode" . '</a></td></tr>';
 	$r .= '<tr><td>Phone Numbers:</td><td>';
 
 	if ($customer->telno_home != '') {
