@@ -46,7 +46,7 @@ function crowbank_table($attr = [], $content = null, $tag = '') {
 
 	$attr = shortcode_atts([ 'type' => 'count', 'class' => '', 'cust_no' => 0, 'emp_no' => 0, 'title' => '',
 		'time' => 'future', 'function' => 'work', 'spec' => 'Dog', 'direction' => 'in',
-		'weeks' => 20, 'year' =>'', 'offset' => 0], $attr, $tag);
+		'weeks' => 20, 'year' =>'', 'offset' => 0, 'read_only' => false], $attr, $tag);
 
 	if (!isset($attr['type'])) {
 		return crowbank_error('type attribute must be specified');
@@ -198,12 +198,17 @@ function crowbank_customer_pets($attr)
 	global $petadmin;
 
 	$customer = $attr['cust'];
+	$read_only = $attr['read_only'];
 
 	if (!$customer)
 		return crowbank_error('No customer specified');
 
 	$r = '<div style="overflow-x:auto;"><table class="table">';
-	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th><th></th><th></th></thead><tbody>';
+	$r .= '<thead><th>Name</th><th>Species</th><th>Breed</th><th>Date of Birth</th><th>Vaccinations</th>';
+	if (!$read_only) {
+		$r .= '<th></th><th></th>';
+	}
+	$r .= '</thead><tbody>';
 
 	$pets = $customer->get_pets();
 	foreach($pets as $pet) {
@@ -214,7 +219,15 @@ function crowbank_customer_pets($attr)
 		$update_url = home_url('pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
 		$remove_url = home_url('remove-pet/?pet_no=' . $pet->no . '&cust=' . $customer->no);
 		
-		$r .= "<tr><td><a href=" . '"' . $update_url . '">' . $pet->name . "</a></td>";
+		$r .= "<tr><td>";
+		if (!$read_only) {
+			$r .= "<a href=" . '"' . $update_url . '">';
+		}
+		$r .= $pet->name;
+		if (!$read_only) {
+			$r .= "</a>";
+		}
+		$r .= "</td>";
 		$r .= "<td>$pet->species</td>";
 		$breed_desc = $pet->breed->desc;
 		$r .= "<td>$breed_desc</td>";
@@ -227,9 +240,11 @@ function crowbank_customer_pets($attr)
 		}
 		$r .= "<td>$vacc</td>";
 		
-		$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a></td>';
-		
-		$r .= '<td><a class="table_button cancel_booking_button" href="' . $remove_url . '">Remove <span class="fa fa-fw fa-times"></span></a></td></tr>';
+		if (!$read_only) {
+			$r .= '<td><a class="table_button booking_edit_button" href="' . $update_url . '">Edit <span class="fa fa-fw fa-edit"></span></a></td>';
+			
+			$r .= '<td><a class="table_button cancel_booking_button" href="' . $remove_url . '">Remove <span class="fa fa-fw fa-times"></span></a></td></tr>';
+		}
 	}
 
 
@@ -243,6 +258,7 @@ function crowbank_customer_bookings($attr) {
 	global $petadmin;
 
 	$customer = $attr['cust'];
+	$read_only = $attr['read_only'];
 
 	if (!$customer)
 		return crowbank_error('No customer specified');
@@ -275,8 +291,11 @@ function crowbank_customer_bookings($attr) {
 		$r .=  "<h2>$title</h2>";
 		$r .= '<div style="overflow-x:auto;"><table class="table">';
 		$r .= '<thead><th>Booking #</th><th>Start Date</th><th>End Date</th><th style="width: 300px;">Pets</th>
-<th>Gross Amount</th><th>Paid Amount</th><th>Balance</th><th>Status</th><th></th><th></th><th></th></thead>';
-		$r .= '<tbody>';
+<th>Gross Amount</th><th>Paid Amount</th><th>Balance</th><th>Status</th><th></th>';
+		if (!$read_only) {
+			$r .= '<th></th><th></th>';
+		}
+		$r .= '<th></th><th></th></thead><tbody>';
 		foreach ($bookings as $booking) {
 			$status = $booking->status;
 			if ($status == '') {
@@ -312,7 +331,7 @@ function crowbank_customer_bookings($attr) {
 			$r .= "</td><td align=right>" . number_format($booking->gross_amt, 2) . "</td><td align=right>" . number_format($booking->paid_amt, 2) .
 			"</td><td align=right>" . number_format($booking->gross_amt-$booking->paid_amt, 2) . "</td><td>$status_desc</td><td>";
 
-			if ($time == 'future' or $time == 'draft') {
+			if (!$read_only and ($time == 'future' or $time == 'draft')) {
 				$update_url = home_url('booking-request/?bk_no=' . $booking->no . '&cust=' . $customer->no);
 				$r .= '<a class="table_button booking_edit_button" href="' . $update_url . '">Modify <span class="fa fa-fw fa-edit"></span></a>';
 			}
@@ -328,7 +347,7 @@ function crowbank_customer_bookings($attr) {
 			
 			$r .= "</td><td>";
 			
-			if (($time == 'future' and ($booking->status == ' ' or $booking->status == 'V')) or $booking->status == 'D') {
+			if (!$read_only and (($time == 'future' and ($booking->status == ' ' or $booking->status == 'V')) or $booking->status == 'D')) {
 				$cancellation_url = home_url('cancellation-confirmation/?bk_no=' . $booking->no . '&cust=' . $customer->no .
 						'&cust_surname=' . $customer->surname . '&bk_pets=' . $booking->pet_names() .
 						'&bk_start_date=' . $booking->start_date->format("Y-m-d") . '&bk_end_date=' . $booking->end_date->format("Y-m-d"));
