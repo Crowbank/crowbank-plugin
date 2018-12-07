@@ -650,7 +650,25 @@ function crowbank_gform_script() {
 	wp_enqueue_script( 'crowbank_alert', plugins_url( '/js/booking-form.js', __FILE__));
 }
 
+
+	 /* <?php add_filter( 'um_registration_user_role', 'function_name', 10, 2 ); ?>
+	 * @example
+	 * <?php
+	 * add_filter( 'um_registration_user_role', 'my_registration_user_role', 10, 2 );
+	 * function my_user_register_submitted__email( $role, $submitted ) {
+	 *     // your code here
+	 *     return $role;
+	 * }
+	 * ?>
+*/
+
+function crowbank_user_registeration_role ( $role, $submitted ) {
+    return $role;
+}
+	
+
 function crowbank_hooks_init() {
+	add_filter('um_registration_user_role', 'crowbank_user_registeration_role', 10, 2 );
 	add_action('um_registration_complete', 'crowbank_check_new_user',10, 2);
 	add_action('wp_footer', 'crowbank_display_log' );
 	add_action('template_redirect', 'crowbank_my_redirect', 10010);
