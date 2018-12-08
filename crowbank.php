@@ -665,14 +665,25 @@ function crowbank_gform_script() {
 function crowbank_user_registeration_role ( $role, $submitted ) {
 	crowbank_log('Inside crowbank_user_registration_role hook');
 	crowbank_log('Current role is ' . $role);
-	crowbank_log('submitted[user_email] = ' . $submitted['user_email']);
+	$email = strtolower($submitted['user_email']);	
+	crowbank_log( 'Checking for info on user with email ' . $email, 1);
+	
+	if ($petadmin->employees->get_by_email($email)) {
+		$role = 'employee';
+		crowbank_log('Changed to employee', 2);
+	}
+	elseif ($petadmin->customers->get_by_email($email)) {
+		$role = 'customer';
+		crowbank_log('Changed to customer', 2);
+	}
+	
     return $role;
 }
 	
 
 function crowbank_hooks_init() {
 	add_filter('um_registration_user_role', 'crowbank_user_registeration_role', 10, 2 );
-	add_action('um_registration_complete', 'crowbank_check_new_user',10, 2);
+//	add_action('um_registration_complete', 'crowbank_check_new_user',10, 2);
 	add_action('wp_footer', 'crowbank_display_log' );
 	add_action('template_redirect', 'crowbank_my_redirect', 10010);
 	add_action('gform_enqueue_scripts_25', 'crowbank_gform_script', 10, 2 );
