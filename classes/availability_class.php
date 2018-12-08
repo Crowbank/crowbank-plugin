@@ -18,9 +18,7 @@ class Availability {
 		if ($this->isLoaded) {
 			$runs = array();
 		}
-		
-		petadmin_log('Loading availability for ' . spl_object_hash($this) . ' with force='.$force.' and isLoaded='.$this->isLoaded);
-		
+			
 		$sql = "select ra_date, ra_spec, ra_rt_desc, ra_availability from my_availability";
 		
 		$result = $petadmin_db->execute($sql);
