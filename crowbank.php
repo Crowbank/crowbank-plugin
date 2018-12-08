@@ -665,7 +665,7 @@ function crowbank_gform_script() {
 function crowbank_user_registeration_role ( $role, $submitted ) {
 	crowbank_log('Inside crowbank_user_registration_role hook');
 	crowbank_log('Current role is ' . $role);
-	crowbank_log('Submitted we fine ' . print_r($submitted, TRUE));
+	crowbank_log('submitted[user_email] = ' . $submitted['user_email']);
     return $role;
 }
 	
