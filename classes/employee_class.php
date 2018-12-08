@@ -172,6 +172,7 @@ emp_email, emp_facebook, emp_start_date, emp_end_date, emp_order, emp_telno_mobi
 	}
 
 	public function get_by_email($email) {
+		crowbank_log('Employees->Inside get_by_email');
 		$this->load();
 		if (isset($this->by_email[$email]))
 			return $this->by_email[$email];
