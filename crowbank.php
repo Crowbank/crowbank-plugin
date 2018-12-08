@@ -663,6 +663,7 @@ function crowbank_gform_script() {
 */
 
 function crowbank_user_registeration_role ( $role, $submitted ) {
+	global $petadmin;
 	crowbank_log('Inside crowbank_user_registration_role hook');
 	crowbank_log('Current role is ' . $role);
 	$email = strtolower($submitted['user_email']);	
