@@ -671,11 +671,14 @@ function crowbank_user_registeration_role ( $role, $submitted ) {
 	if ($petadmin->employees->get_by_email($email)) {
 		$role = 'employee';
 		crowbank_log('Changed to employee', 2);
+		return $role;
 	}
-	elseif ($petadmin->customers->get_by_email($email)) {
+	crowbank_log('Not an employee...');
+	if  ($petadmin->customers->get_by_email($email)) {
 		$role = 'customer';
 		crowbank_log('Changed to customer', 2);
 	}
+	crowbank_log('Role unchanged');
 	
     return $role;
 }
