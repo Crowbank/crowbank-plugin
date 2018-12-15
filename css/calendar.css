@@ -10,8 +10,6 @@
 	--header-width: 582px;
 	--day-font-size: 25px;
 }
-*/
-
 :root {
 	--cell-size: 30px;
 	--header-size: 20px;
@@ -22,6 +20,30 @@
 	--day-font-size: 14px;
 }
 
+*/
+
+:root {
+	--cell-size: 24px;
+	--header-size: 18px;
+	--calendar-width: 210px;
+	--font-size: 12px;
+	--label-size: 8px;
+	--header-width: 200px;
+	--day-font-size: 10px;
+}
+
+@media only screen and (max-width: 959px) and (min-width: 768px) {
+:root {
+	--cell-size: 20px;
+	--header-size: 15px;
+	--calendar-width: 160px;
+	--font-size: 10px;
+	--label-size: 7px;
+	--header-width: 150px;
+	--day-font-size: 9px;
+	 background-color: blue ;
+}	
+}
 div#calendar{
   margin:0px auto;
   padding:0px;
