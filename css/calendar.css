@@ -160,6 +160,7 @@ div#calendar ul.dates li{
 div.clear{
     clear:both;
 }
+
 div#calendar ul.dates li.free {
 	background-color: green;
 }
@@ -170,6 +171,36 @@ div#calendar ul.dates li.busy {
 
 div#calendar ul.dates li.full {
 	background-color: red;
+}
+
+div#calendar ul.dates li.free_busy {
+	background-image: -webkit-linear-gradient(135deg, orange 50%, green 50%);
+	
+}
+
+div#calendar ul.dates li.busy_free {
+	background-image: -webkit-linear-gradient(135deg, green 50%, orange 50%);
+	
+}
+
+div#calendar ul.dates li.free_full {
+	background-image: -webkit-linear-gradient(135deg, red 50%, green 50%);
+	
+}
+
+div#calendar ul.dates li.full_free {
+	background-image: -webkit-linear-gradient(135deg, green 50%, red 50%);
+	
+}
+
+div#calendar ul.dates li.busy_full {
+	background-image: -webkit-linear-gradient(135deg, red 50%, orange 50%);
+	
+}
+
+div#calendar ul.dates li.full_busy {
+	background-image: -webkit-linear-gradient(135deg, orange 50%, red 50%);
+	
 }
 
 .free {
@@ -183,6 +214,41 @@ div#calendar ul.dates li.full {
 .full {
 	background-color: red;
 }
+
+.free_busy {
+	background-image: -webkit-linear-gradient(135deg, orange 50%, green 50%);
+	
+}
+
+.busy_free {
+	background-image: -webkit-linear-gradient(135deg, green 50%, orange 50%);
+	
+}
+
+.free_full {
+	background-image: -webkit-linear-gradient(135deg, red 50%, green 50%);
+	
+}
+
+.full_free {
+	background-image: -webkit-linear-gradient(135deg, green 50%, red 50%);
+	
+}
+
+.busy_full {
+	background-image: -webkit-linear-gradient(135deg, red 50%, orange 50%);
+	
+}
+
+.full_busy {
+	background-image: -webkit-linear-gradient(135deg, orange 50%, red 50%);
+	
+}
+
+
+
+
+
 
 form label.gform_body {
 		float: none;

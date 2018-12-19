@@ -66,9 +66,15 @@ function crowbank_calendar($attr = [], $content = null, $tag = '', $force = 0) {
 	$runtype = $attr['runtype'];
 	$availabilityClasses = array();
 	$availabilityClasses[0] = 'free';
-	$availabilityClasses[1] = 'busy';
-	$availabilityClasses[2] = 'full';
-
+	$availabilityClasses[1] = 'free_busy';
+	$availabilityClasses[2] = 'free_full';
+	$availabilityClasses[10] = 'busy_free';
+	$availabilityClasses[11] = 'busy';
+	$availabilityClasses[12] = 'busy_full';
+	$availabilityClasses[20] = 'full_free';
+	$availabilityClasses[21] = 'full_busy';
+	$availabilityClasses[22] = 'full';
+	
 	if ($runtype == 'cattery') {
 		$species = 'Cat';
 		$run_type = 'Any';
@@ -90,7 +96,8 @@ function crowbank_calendar($attr = [], $content = null, $tag = '', $force = 0) {
 		}
 	} else {
 		$classFunc = function($date) use ($availability, $species, $run_type, $availabilityClasses) {
-			$a = $availability->availability($date, $species, $run_type);
+			$aa = $availability->availability($date, $species, $run_type);
+			$a = 10 * $aa['am'] + $aa['pm'];
 			if (isset($availabilityClasses[$a]))
 				return $availabilityClasses[$a];
 			
