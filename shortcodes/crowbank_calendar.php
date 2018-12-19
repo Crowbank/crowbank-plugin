@@ -77,7 +77,7 @@ function crowbank_calendar($attr = [], $content = null, $tag = '', $force = 0) {
 	
 	if ($runtype == 'cattery') {
 		$species = 'Cat';
-		$run_type = 'Any';
+		$run_type = 'Cat';
 	} else {
 		$species = 'Dog';
 		if ($runtype == 'kennels')
