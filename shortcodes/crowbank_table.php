@@ -764,7 +764,7 @@ function crowbank_pet_inventory($attr) {
 		$spec = $attr['spec'];
 
 	if ($spec == 'Dog') {
-		$run_types = [['Home', 1], ['Deluxe', 2], ['Double', 4], ['Small Double', 6], ['Standard', 22]];
+		$run_types = [['Home', 1], ['Deluxe', 2], ['Double', 4], ['Sml Double', 6], ['Standard', 22]];
 	} else {
 		$run_types = [['Home', 1], ['Standard', 13]];
 	}
