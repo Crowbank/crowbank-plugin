@@ -24,6 +24,22 @@ class Booking {
 	public $pet_names;
 	public $original_booking;
 	
+	const STATUS_ARRAY = array(
+			'B' => ['bookingbooking', 'Unconfirmed'],
+			' ' => ['bookingbooking', 'Unconfirmed'],
+			'V' => ['confirmedbooking', 'Confirmed'],
+			'C' => ['cancelledbooking', 'Cancelled'],
+			'N' => ['cancelledbooking', 'No Show'],
+			'-' => ['pastbooking', ''],
+			'A' => ['pastbooking', ''],
+			'0' => ['currentbooking', ''],
+			'P' => ['standbybooking', 'Provisional'],
+			'S' => ['standbybooking', 'Standby'],
+			'O' => ['standbybooking', 'Online'],
+			'R' => ['requestedbooking', 'Requested'],
+			'D' => ['draftbooking', 'Draft']
+	);
+	
 	public function __construct($row) {
 		global $petadmin;
 		$this->no = (int) $row['bk_no'];
@@ -253,6 +269,88 @@ class Booking {
 		$sql .= ' where bk_no = ' . $this->no;
 		
 		$petadmin_db->execute($sql);
+	}
+
+	public function html($style, $time, $buttons = NULL) {
+		$status = $this->status;
+		if ($status == '') {
+			$status = 'B';
+		}
+		if ($time == 'present') {
+			$status = '0';
+		} else if ($time == 'past' and $status != 'C' and $status != 'N') {
+			$status = '-';
+			$status_desc = '';
+		}
+		
+		$status_desc = STATUS_ARRAY[$status][1];
+		$status_class = STATUS_ARRAY[$status][0];
+		$start = $this->start_date->format('d/m/y') . ' ' . $this->start_time;;
+		$end = $this->end_date->format('d/m/y') . ' ' . $this->end_time;
+		
+		if ($style == 'card') {
+			return $this->html_card($status_class, $status_desc, $start, $end, $buttons);
+		} else if ($style == 'row') {
+			return $this->html_row($status_class, $status_desc, $start, $end, $buttons);
+		}
+		return '';
+	}
+	
+	private function html_card($status_class, $status_desc, $start, $end, $buttons = NULL) {
+		$r = '<div class="booking ' . $status_class . '">';
+		$r .= '<div class="label">Bk #</div><div class="content">';
+		if ($this->no > 0) {
+			$r .= $this->no;
+		} else {
+			$r .= 'N/A';
+		}
+		$r .= '</div>';
+		if ($status_desc) {
+			$r .= '<div class="label">Status</div><div class="content">' . $status_desc . '</div>';
+		} else {
+			$r .= '<div class="label"></div><div class="content"></div>';
+		}
+		$r .= '<div class="label">Start</div><div class="content">' . $start . '</div>';
+		$r .= '<div class="label">End</div><div class="content">' . $end . '</div>';
+		$r .= '<div class="label">Pets</div><div class="span3 content">' . $this->pet_names() . '</div>';
+		$r .= '<div style="padding-top: 0px"></div><div class="buttonRow span4"><div class="label">Gross</div>';
+		$r .= '<div class="content">£' . number_format($this->gross_amt, 2) . '</div>';
+		$r .= '<div class="label">Paid</div><div class="content">£' . number_format($this->paid_amt, 2). '</div>';
+		$r .= '<div class="label">Balance</div><div class="content">£' . number_format($this->gross_amt-$this->paid_amt, 2). '</div>';
+		$r .= '</div><div style="padding-top: 0px"></div>';
+		if ($buttons) {
+			$r .= '<div class="buttonRow span4">';
+			foreach ($buttons as $b) {
+				$r .= '<div><a href="' . $b['link'] . '" class="crowbank_button button' . $b['type'] . '">' . $b['title'] . '</a></div>'; 
+			}
+			$r .= '</div>';
+		}
+		$r .= '</div>';
+		
+		return $r;
+	}
+	
+	private function html_row($status_class, $status_desc, $start, $end, $buttons = NULL) {
+		$r = '<tr class="' . $status_class . '"><td>';
+		if ($this->no > 0) {
+			$r .= $this->no;
+		} else {
+			$r .= 'N/A';
+		}
+		$r .= '</td><td>' . $start . '</td><td>' . $end . '</td><td>';
+		foreach ($this->pets as $pet) {
+			$r .= "$pet->name<br>";
+		}
+		$r .= "</td><td align=right>" . number_format($this->gross_amt, 2) . "</td><td align=right>" . number_format($this->paid_amt, 2) .
+		"</td><td align=right>" . number_format($this->gross_amt-$this->paid_amt, 2) . "</td><td>$status_desc</td><td>";
+		
+		foreach($buttons as $b) {
+			$r .= '<a class="table_button booking_edit_button" href="' . $update_url . '">Modify <span class="fa fa-fw fa-edit"></span></a>';
+			$r .= "</td>";
+		}
+
+		$r .= '</tr>';
+		return $r;
 	}
 }
 

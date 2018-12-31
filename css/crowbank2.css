@@ -1006,3 +1006,129 @@ input[type=radio   ]:not(old) + label{
 	opacity: 0.9;
 }
 
+
+/* Booking Card */
+
+
+
+.booking {
+  border: 1px solid black;
+  margin-bottom: 10px;
+  min-width: 300px;
+  max-width: 500px;
+  min-height: 180px;
+  max-height: 250px;
+  font-family: Arial, Helvetica, sans-serif;
+  display: grid;
+#  grid-column-gap: 2px;
+#  grid-row-gap: 2px;  
+#  font-size: 80%;
+  grid-template-columns: 17% auto 17% auto;
+  border-radius: 5px;
+}
+
+.span2 {
+  grid-column: span 2;
+}
+.span3 {
+  grid-column: span 3;
+}
+.span4 {
+  grid-column: span 4;
+}
+
+.booking .label {
+  font-weight: bold;
+  text-align: left;
+  padding: 5px;
+#  border: 2px solid #dddddd;
+  width: 100%;
+}
+
+.booking .content {
+  font-weight: normal;
+  text-align: left;
+  padding: 5px;
+#  border: 2px solid #dddddd;
+  width: 100%;
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+}
+
+.buttonPay {
+  --color1: #fff6af;
+  --color2: #ffec64;
+  --color3: #ffab23;
+  --color4: #ffaa22;
+  --color5: #333333;
+  --color6: #ffee66;
+}
+
+.buttonModify {
+  --color1: #a4e271;
+  --color2: #89c403;
+  --color3: #77a809;
+  --color4: #74b807;
+  --color5: #ffffff;
+  --color6: #528009;
+}
+
+.buttonCancel {
+  --color1: #f5978e;
+  --color2: #f24537;
+  --color3: #c62d1f;
+  --color4: #d02718;
+  --color5: #ffffff;
+  --color6: #810e05;
+}
+
+.crowbank_button {
+	-moz-box-shadow: 0px 1px 0px 0px var(--color1);
+	-webkit-box-shadow: 0px 1px 0px 0px var(--color1);
+	box-shadow: 0px 1px 0px 0px var(--color1);
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, var(--color2)), color-stop(1, var(--color3)));
+	background:-moz-linear-gradient(top, var(--color2) 5%, var(--color3) 100%);
+	background:-webkit-linear-gradient(top, var(--color2) 5%, var(--color3) 100%);
+	background:-o-linear-gradient(top, var(--color2) 5%, var(--color3) 100%);
+	background:-ms-linear-gradient(top, var(--color2) 5%, var(--color3) 100%);
+	background:linear-gradient(to bottom, var(--color2) 5%, var(--color3) 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=var(--color2), endColorstr=var(--color3),GradientType=0);
+	background-color:var(--color2);
+	border:1px solid var(--color4);
+	color:var(--color5);
+	text-shadow:0px 1px 0px var(--color6);
+	margin-bottom: 10px;
+
+  -moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	display:inline-block;
+	cursor:pointer;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 12px;
+	text-decoration:none;
+}
+
+.crowbank_button:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, var(--color3)), color-stop(1, var(--color2)));
+	background:-moz-linear-gradient(top, var(--color3) 5%, var(--color2) 100%);
+	background:-webkit-linear-gradient(top, var(--color3) 5%, var(--color2) 100%);
+	background:-o-linear-gradient(top, var(--color3) 5%, var(--color2) 100%);
+	background:-ms-linear-gradient(top, var(--color3) 5%, var(--color2) 100%);
+	background:linear-gradient(to bottom, var(--color3) 5%, var(--color2) 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=var(--color3), endColorstr=var(--color2),GradientType=0);
+	background-color:var(--color3);
+  
+}
+
+.crowbank_button:active {
+	position:relative;
+	top:1px;
+}
+
