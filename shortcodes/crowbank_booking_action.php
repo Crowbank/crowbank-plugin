@@ -14,34 +14,14 @@
  * will create both the temporary booking and the Message back to Crowbank.
  */
 
-function check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, $dog_weight) {
-	global $petadmin_db;
-	
-	$sql = "call pa_booking_availability('" . $start_date->format('Y-m-d') . "', '" . $end_date->format('Y-m-d');
-	$sql .= "', '" . $end_time . "', " . $is_deluxe . ", " . $dog_count . ", " . $cat_count . ", " . $dog_weight . ");";
-	
-	$result = $petadmin_db->execute($sql);
-	
-	if ($result) {
-		$availability = $result[0]['availability'];
-	}
-	else {
-		$msg = 'Failed running ' . $sql;
-		echo crowbank_error($msg);
-		return 1;
-	}
-	
-	return $availability;
-}
-
 function check_booking_confirmation( $form ) {
-	/* This function is called before form 26 (Booking Request Confirmation) is rendered.
+	/* This function is called after submitting form 25 (booking) and before form 26 (Booking Request Confirmation) is rendered.
 	 * That form is part of the Booking Request Confirmation page, which is the confirmation follow-up from form 25 (Booking)
 	 * The REQUEST object, at this point, contains the value of all the fields filled in the Booking form.
-	 * The Booking form can either be called empty (for a new booking), or full (to modify an existing booking.
+	 * The Booking form can either be called empty (for a new booking), or full (to modify an existing booking).
 	 * In the latter case, the bk_no is set to non-zero.
 	 * 
-	 * To facilitate some of the functionality here, and anticipating the potential need to save a draft booking, one is created
+	 * To facilitate some of the functionality here and anticipating the potential need to save a draft booking, one is created
 	 * using the data fields. That is the case whether or not bk_no is set. If it is, that bk_no is also included in the draft booking.
 	 */
 	global $petadmin, $petadmin_db, $wp;
@@ -52,8 +32,6 @@ function check_booking_confirmation( $form ) {
 	
 	$customer = get_customer();
 	
-/*	populate_customer_details( $form ); */
-	
 	$booking = null;
 	$bk_no = 0;
 	$changed_fields = array();
@@ -61,6 +39,7 @@ function check_booking_confirmation( $form ) {
 	if (isset($_REQUEST['bk_no'])) {
 		$bk_no = $_REQUEST['bk_no'];
 		if ($bk_no) {
+			/* We are following a modification of an existing booking */
 			$booking = $petadmin->bookings->get_by_no($bk_no);
 			if (!$booking or $booking->customer->no <> $customer->no) {
 				echo crowbank_error('Invalid Booking');
@@ -69,6 +48,7 @@ function check_booking_confirmation( $form ) {
 		}
 	}
 	
+	/* Process pets in the booking */ 
 	if (isset($_REQUEST['pets'])) {
 		$pet_numbers = htmlspecialchars_decode($_REQUEST['pets']);
 	} else {
@@ -98,7 +78,6 @@ function check_booking_confirmation( $form ) {
 	$dog_count = 0;
 	$cat_count = 0;
 	$pets = array();
-	$dog_weight = 0;
 
 	foreach ($pets_array as $pet_no) {
 		$pet = $petadmin->pets->get_by_no($pet_no);
@@ -109,16 +88,6 @@ function check_booking_confirmation( $form ) {
 
 		if ($pet->species == 'Dog') {
 			$dog_count += 1;
-			if ($pet->breed->billcat == 'Dog large')
-				$dog_weight += 3;
-			else if ($pet->breed->billcat == 'Dog medium')
-				$dog_weight += 2;
-			else if ($pet->breed->billcat == 'Dog small')
-				$dog_weight += 1;
-			else {
-				echo crowbank_error('Bad billing category for ' . $pet->name . '(' . $pet->breed->desc . ')');
-				return -1;
-			}
 		} else {
 			$cat_count += 1;
 		}
@@ -136,10 +105,12 @@ function check_booking_confirmation( $form ) {
 		}
 	}
 	
+/* Process start date/time */
+
 	if (isset($_REQUEST['start_date'])) {
 		$start_date = new DateTime(htmlspecialchars_decode($_REQUEST['start_date']));
 		if ($booking and $start_date->getTimestamp() != $booking->start_date->getTimestamp()) {
-			$changed_fields[] = 'start_date';
+			$changed_fields[] = 'start';
 		}
 	} else {
 		echo crowbank_error('Invalid or missing start date');
@@ -156,6 +127,8 @@ function check_booking_confirmation( $form ) {
 		return -1;
 	}
 	
+	/* Process end date/time */
+
 	if (isset($_REQUEST['end_date'])) {
 		$end_date = new DateTime(htmlspecialchars_decode($_REQUEST['end_date']));
 		if ($booking and $end_date->getTimestamp() != $booking->end_date->getTimestamp()) {
@@ -175,6 +148,8 @@ function check_booking_confirmation( $form ) {
 		echo crowbank_error('Invalid or missing end time');
 		return -1;
 	}
+
+	/* Process booking type (deluxe vs. standard) */
 	
 	if (isset($_REQUEST['kennel'])) {
 		$kennel = $_REQUEST['kennel'];
@@ -193,6 +168,8 @@ function check_booking_confirmation( $form ) {
 		$changed_fields[] = 'deluxe';
 	}
 	
+/* Process comment field */
+
 	$comment = '';
 	if (isset($_REQUEST['comment'])) {
 		$comment = htmlspecialchars_decode($_REQUEST['comment']);
@@ -210,83 +187,23 @@ function check_booking_confirmation( $form ) {
 	} else {
 		$msg_type = 'booking-request';
 	}
-	
-	$sql = "select rate_start_date, rate_category, rate_service, rate_amount from my_rate order by rate_start_date desc";
-	$result = $petadmin_db->execute($sql);
-	
-	foreach($result as $row) {
-		$rate_start_date = new DateTime($row['rate_start_date']);
-		if ($rate_start_date > $start_date) {
-			continue;
-		}
-		
-		$rate_category = $row['rate_category'] . $row['rate_service'];
-		if (!isset($rates[$rate_category])) {
-			$rates[$rate_category] = (float) $row['rate_amount'];
-		}
+
+	$draft_booking = $petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time,
+		$is_deluxe, $comment, 'D');
+
+	$cost_estimate = $draft_booking->get_cost_estimate();
+
+	if ($booking and $cost_estimate != $booking->gross_amt) {
+		$changed_fields[] = 'cost';
 	}
 	
-	$availability = check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, $dog_weight);
-	
-	if ($availability == 2 and $dog_weight > 3 and $is_deluxe == 0) {
-		$standard_availability = check_availability($start_date, $end_date, $end_time, $is_deluxe, $dog_count, $cat_count, 2);
-		if ($standard_availability < 2) {
-			$availability = 1;
-		}
-	}
-	
+	$cost_comment = $draft_booking->get_cost_comment();
+
+	/* Work out availability */
+
+	$availability = $draft_booking->get_availability();
 	$availability_statement = $availability_responses[$availability];
-	
-	$cost_comment = '';
-	if ($dog_count < 3 and $cat_count < 3) {
-		$night_rate = 0.0;
-		$first_dog = true;
-		$first_cat = true;
-		foreach ($pets as $pet) {
-			$rate_category = $pet->breed->billcat;
-			if ($pet->species == 'Dog' and $is_deluxe == 1) {
-				$rate_category = 'Deluxe';
-			}
-			
-			if (($pet->species == 'Dog' and $first_dog) or (($pet->species == 'Cat' and $first_cat))) {
-				$rate_service = 'BOARD';
-				if ($pet->species == 'Dog') {
-					$first_dog = FALSE;
-				}
-				if ($pet->species == 'Cat') {
-					$first_cat = FALSE;
-				}
-			} else {
-				$rate_service = 'BOARD2';
-			}
-			
-			$rate = $rates[$rate_category . $rate_service];
-			$night_rate += $rate;
-		}
-		
-		$interval = $start_date->diff($end_date)->format("%a");
-		if ($end_time == 'pm') {
-			$interval += 1;
-		}
-			
-		$cost_estimate = $night_rate * $interval;
-		
-		if ($booking and $cost_estimate != $booking->gross_amt) {
-			$changed_fields[] = 'cost';
-		}
-		
-		if ($dog_count == 2 and $cat_count < 2) {
-			$cost_comment = ' (with both dogs sharing a kennel)';
-		} else if ($dog_count == 2 and $cat_count == 2) {
-			$cost_comment = ' (with both dogs sharing a kennel and both cats sharing a pen)';
-		} else if ($dog_count < 2 and $cat_count == 2) {
-			$cost_comment = ' (with both cats sharing a pen)';
-		}
-	} else {
-		$cost_estimate = '';
-		$cost_comment = 'We will return to you with a total charge';
-	}
-	
+
 	/* with preparation out of the way, start populating the html element */
 
 	$overlapping = false;
@@ -294,9 +211,6 @@ function check_booking_confirmation( $form ) {
 	if (!$booking) {
 		$overlapping = $petadmin->bookings->find_overlapping($customer, $start_date, $end_date);
 	}
-	
-	$draft_booking = $petadmin->bookings->create_booking($customer, $pets, $start_date, $start_time, $end_date, $end_time,
-			$is_deluxe, $comment, 'D', $cost_estimate);
 	
 	foreach ( $form['fields'] as &$field ) {
 		if ( $field->label == 'Draft Booking Number') {

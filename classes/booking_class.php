@@ -20,6 +20,9 @@ class Booking {
 	public $deluxe;
 	public $has_dogs = FALSE;
 	public $has_cats = FALSE;
+	public $dog_count = 0;
+	public $cat_count = 0;
+	public $dog_weight = 0;
 	public $outstanding_amt;
 	public $pet_names;
 	public $original_booking;
@@ -92,9 +95,22 @@ class Booking {
 		
 		if ($pet->species == 'Dog') {
 			$this->has_dogs = TRUE;
+			if ($pet->breed->billcat == 'Dog large')
+				$this->dog_weight += 3;
+			else if ($pet->breed->billcat == 'Dog medium')
+				$this->dog_weight += 2;
+			else if ($pet->breed->billcat == 'Dog small')
+				$this->dog_weight += 1;
+			else {
+				echo crowbank_error('Bad billing category for ' . $pet->name . '(' . $pet->breed->desc . ')');
+				return -1;
+			}
+			$this->dog_count += 1;
+
 		}
 		if ($pet->species == 'Cat') {
 			$this->has_cats = TRUE;
+			$this->cat_count += 1;
 		}
 	}
 	
@@ -127,6 +143,7 @@ class Booking {
 		 * return 0 if booking has dogs, and none goes to deluxe
 		 * return -1 if booking has no dogs
 		 */
+		return $this.deluxe;
 	}
 	
 	public function deposit() {
@@ -226,6 +243,110 @@ class Booking {
 		
 		return 'pm';
 	}
+	
+	public function get_cost_estimate() {
+		global $petadmin_db;
+
+		if ($this->dog_count < 3 and $this->cat_count < 3) {
+			$sql = "select rate_start_date, rate_category, rate_service, rate_amount from my_rate order by rate_start_date desc";
+			$result = $petadmin_db->execute($sql);
+			
+			foreach($result as $row) {
+				$rate_start_date = new DateTime($row['rate_start_date']);
+				if ($rate_start_date > $this->start_date) {
+					continue;
+				}
+				
+				$rate_category = $row['rate_category'] . $row['rate_service'];
+				if (!isset($rates[$rate_category])) {
+					$rates[$rate_category] = (float) $row['rate_amount'];
+				}
+			}
+					
+			$night_rate = 0.0;
+			$first_dog = true;
+			$first_cat = true;
+			foreach ($this->pets as $pet) {
+				$rate_category = $pet->breed->billcat;
+				if ($pet->species == 'Dog' and $this->deluxe == 1) {
+					$rate_category = 'Deluxe';
+				}
+				
+				if (($pet->species == 'Dog' and $first_dog) or (($pet->species == 'Cat' and $first_cat))) {
+					$rate_service = 'BOARD';
+					if ($pet->species == 'Dog') {
+						$first_dog = FALSE;
+					}
+					if ($pet->species == 'Cat') {
+						$first_cat = FALSE;
+					}
+				} else {
+					$rate_service = 'BOARD2';
+				}
+				
+				$rate = $rates[$rate_category . $rate_service];
+				$night_rate += $rate;
+			}
+			
+			$interval = $this->start_date->diff($this->end_date)->format("%a");
+			if ($this->end_time_slot() == 'pm') {
+				$interval += 1;
+			}
+				
+			$cost_estimate = $night_rate * $interval;
+		} else {
+			$cost_estimate = 0.0;
+		}
+		return $cost_estimate;
+	}
+
+	public function get_cost_comment() {
+		if ($this->dog_count == 2 and $this->cat_count < 2) {
+			$cost_comment = ' (with both dogs sharing a kennel)';
+		} else if ($this->dog_count == 2 and $this->cat_count == 2) {
+			$cost_comment = ' (with both dogs sharing a kennel and both cats sharing a pen)';
+		} else if ($this->dog_count < 2 and $this->cat_count == 2) {
+			$cost_comment = ' (with both cats sharing a pen)';
+		} else {
+			$cost_comment = 'We will return to you with a total charge';
+		}
+
+		return $cost_comment;
+	}
+
+	private function check_availability($dog_weight) {
+		global $petadmin_db;
+		
+		$sql = "call pa_booking_availability('" . $this->start_date->format('Y-m-d') . "', '" . $this->end_date->format('Y-m-d');
+		$sql .= "', '" . $this->end_time_slot() . "', " . $this->deluxe . ", " . $this->dog_count . ", " . $this->cat_count . ", " . $dog_weight . ");";
+		
+		$result = $petadmin_db->execute($sql);
+		
+		if ($result) {
+			$availability = $result[0]['availability'];
+		}
+		else {
+			$msg = 'Failed running ' . $sql;
+			echo crowbank_error($msg);
+			return 1;
+		}
+
+		return $availability;
+	}
+
+	public function get_availability() {
+		$availability = $this->check_availability($this->dog_weight);
+
+		if ($availability == 2 and $this->dog_weight > 3 and $this->deluxe == 0) {
+			$standard_availability = $this->check_availability(2);
+			if ($standard_availability < 2) {
+				$availability = 1;
+			}
+		}
+	
+		return $availability;
+	}
+	
 	
 	public function cancel_booking() {
 		global $petadmin_db;
@@ -468,9 +589,9 @@ from my_booking";
 		$id = crowbank_localid(['type' => 'booking']);
 		
 		$sql = 'insert into crowbank_petadmin.my_booking (bk_no, bk_cust_no, bk_start_date, bk_end_date, bk_start_time, bk_end_time, ';
-		$sql .= 'bk_gross_amt, bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
+		$sql .= 'bk_paid_amt, bk_memo, bk_notes, bk_status, bk_create_date, bk_deluxe) values (';
 		$sql .= -$id . ', ' . $customer->no . ", '" . $start_date->format('Y-m-d') . "', '"  . $end_date->format('Y-m-d') . "', '";
-		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "', " . number_format($cost_estimate, 2);
+		$sql .= time_slot_to_time($start_time, 'in') . "', '" . time_slot_to_time($end_time, 'out') . "'";
 		$sql .= ", 0.0, '" . esc_sql($comments) . "', '";
 		if ($bk_no != 0) {
 			$sql .= $bk_no;
@@ -488,7 +609,7 @@ from my_booking";
 		
 		$row = array('bk_no' => -$id, 'bk_cust_no' => $customer->no, 'bk_start_date' => $start_date->format('Y-m-d'),
 				'bk_end_date' => $end_date->format('Y-m-d'), 'bk_start_time' => time_slot_to_time($start_time, 'in'),
-				'bk_end_time' => time_slot_to_time($end_time, 'out'), 'bk_gross_amt' => $cost_estimate,
+				'bk_end_time' => time_slot_to_time($end_time, 'out'), 
 				'bk_paid_amt' => 0.0, 'bk_notes' => '', 'bk_memo' => $comments, 'bk_status' => $status, 'bk_deluxe' => $is_deluxe,
 				'bk_create_date' => (new DateTime())->format('Y-m-d'));
 		$booking = new Booking($row);
@@ -497,6 +618,13 @@ from my_booking";
 			$booking->add_pet($pet, '', '');
 		}
 		
+		if (!$cost_estimate) {
+			$cost_estimate = $booking->get_cost_estimate();
+		}
+
+		$sql = 'update crowbank_petadmin.my_booking set bk_gross_amt = ' . number_format($cost_estimate, 2) . ' where bk_no = ' . $booking->no;
+		$petadmin_db->execute($sql);
+
 		$this->count++;
 		$this->by_no[$booking->no] = $booking;
 			
