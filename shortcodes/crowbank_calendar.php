@@ -13,7 +13,7 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
     $r .= '<div class="legend">';
     $r .= '		<div class="legend-card">';
     $r .= '			<div class="legend-text"><h2>Good Availability</h2></div>';
-    $r .= '				<div class="legend-square free_free">';
+    $r .= '				<div class="legend-square free">';
 	$r .= '                <div class="legend-am">am</div>';
 	$r .= '                <div class="legend-pm">pm</div>';
 	$r .= '            </div>';
@@ -24,7 +24,7 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
 	$r .= '    </div>';
 	$r .= '    <div class="legend-card">';
 	$r .= '        <div class="legend-text"><h2>Limited Availability</h2></div>';
-	$r .= '        <div class="legend-square busy_busy">';
+	$r .= '        <div class="legend-square busy">';
 	$r .= '            <div class="legend-am">am</div>';
 	$r .= '            <div class="legend-pm">pm</div>';
 	$r .= '        </div>';
@@ -35,7 +35,7 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
 	$r .= '        </div>';
 	$r .= '    <div class="legend-card">';
 	$r .= '        <div class="legend-text"><h2>No Availability</h2></div>';
-	$r .= '        <div class="legend-square full_full">';
+	$r .= '        <div class="legend-square full">';
 	$r .= '            <div class="legend-am">am</div>';
 	$r .= '            <div class="legend-pm">pm</div>';
 	$r .= '        </div>';
