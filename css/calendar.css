@@ -250,10 +250,10 @@ form label.gform_body {
 }
 
 .legend {
-    padding: 50px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .legend p {
