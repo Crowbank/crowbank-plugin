@@ -274,7 +274,6 @@ form label.gform_body {
     display: flex;
     max-width: 180px;
     min-width: 100px;
-    max-height: 600px;
     background-color: #eee;
 }
 
@@ -285,7 +284,6 @@ form label.gform_body {
     min-height: 100px;
     /* display: table-cell; */
     padding: 20px;
-    margin: 20px;
     position: relative;
     font-size: 1.5rem;
 
@@ -328,14 +326,13 @@ form label.gform_body {
     /* display: table-cell; */
     margin: 0 auto;
     vertical-align: middle;
-    height: 100%;
+    height: 25%;
     text-align: center;
 }
 
 .legend-detail {
     padding: 20px;
-    max-height: 200px;
-    min-height: 200px;
+    min-height: 230px;
 }
 
 .legend-text h2 {
