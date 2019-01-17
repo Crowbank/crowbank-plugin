@@ -162,7 +162,7 @@ div.clear{
 }
 
 div#calendar ul.dates li.free {
-	background-color: green;
+	background-color: #16d416;
 }
 
 div#calendar ul.dates li.busy {
@@ -174,22 +174,22 @@ div#calendar ul.dates li.full {
 }
 
 div#calendar ul.dates li.free_busy {
-	background-image: -webkit-linear-gradient(135deg, orange 50%, green 50%);
+	background-image: -webkit-linear-gradient(135deg, orange 50%, #16d416 50%);
 	
 }
 
 div#calendar ul.dates li.busy_free {
-	background-image: -webkit-linear-gradient(135deg, green 50%, orange 50%);
+	background-image: -webkit-linear-gradient(135deg, #16d416 50%, orange 50%);
 	
 }
 
 div#calendar ul.dates li.free_full {
-	background-image: -webkit-linear-gradient(135deg, red 50%, green 50%);
+	background-image: -webkit-linear-gradient(135deg, red 50%, #16d416 50%);
 	
 }
 
 div#calendar ul.dates li.full_free {
-	background-image: -webkit-linear-gradient(135deg, green 50%, red 50%);
+	background-image: -webkit-linear-gradient(135deg, #16d416 50%, red 50%);
 	
 }
 
