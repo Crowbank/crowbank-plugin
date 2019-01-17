@@ -8,13 +8,45 @@ function crowbank_calendar_legend($attr = [], $content = null, $tag = '') {
 	$attr = shortcode_atts([ 'class' => ''], $attr, $tag);
 	
 	$class = $attr['class'];
-	
-	$r = '<table id="calendar" class="table">';
 
-	$r .= '<tr><td class="free"></td><td>Good Availability</td></tr>';
-	$r .= '<tr><td class="busy"></td><td>Limited Availability</td></tr>';
-	$r .= '<tr><td class="full"></td><td>No Availability</td></tr>';
-	$r .= '</table>';
+	$r = '<h1>Legend</h1>';
+    $r .= '<div class="legend">';
+    $r .= '		<div class="legend-card">';
+    $r .= '			<div class="legend-text"><h2>Good Availability</h2></div>';
+    $r .= '				<div class="legend-square free_free">';
+	$r .= '                <div class="legend-am">am</div>';
+	$r .= '                <div class="legend-pm">pm</div>';
+	$r .= '            </div>';
+	$r .= '        <div class="legend-detail">';
+	$r .= '            <p>We have <strong>good</strong> availability for the dates.</p>';
+	$r .= '            <p>Please note that availability can change quickly, so make your booking as soon as possible.</p>';
+	$r .= '        </div>';
+	$r .= '    </div>';
+	$r .= '    <div class="legend-card">';
+	$r .= '        <div class="legend-text"><h2>Limited Availability</h2></div>';
+	$r .= '        <div class="legend-square busy_busy">';
+	$r .= '            <div class="legend-am">am</div>';
+	$r .= '            <div class="legend-pm">pm</div>';
+	$r .= '        </div>';
+	$r .= '        <div class="legend-detail">';
+	$r .= '                <p>We have <strong>limited</strong> availability for the dates.</p>';
+	$r .= '                <p>Please get in touch before finalizing your plans.</p>';
+	$r .= '            </div>';
+	$r .= '        </div>';
+	$r .= '    <div class="legend-card">';
+	$r .= '        <div class="legend-text"><h2>No Availability</h2></div>';
+	$r .= '        <div class="legend-square full_full">';
+	$r .= '            <div class="legend-am">am</div>';
+	$r .= '            <div class="legend-pm">pm</div>';
+	$r .= '        </div>';
+	$r .= '        <div class="legend-detail">';
+	$r .= '                <p>We have <strong>no</strong> availability for the dates.</p>';
+	$r .= '                <p>Please let us know if you want to set up a standby booking.</p>';
+	$r .= '            </div>';
+	$r .= '        </div>';
+	$r .= '    </div>';
+	$r .= '</div>';
+
 	$rr = '<div' . ($class == '' ? '' : ' class="' . $class . '"') . '>';
 	
 	$r = $rr . $r . '</div>';
