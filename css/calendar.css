@@ -257,11 +257,11 @@ form label.gform_body {
 }
 
 .legend p {
-    font-size: 14px;
+    font-size: 7px;
 }
 
 .legend h2 {
-    font-size: 20px;
+    font-size: 10px;
 }
 
 .legend-card {
@@ -270,22 +270,22 @@ form label.gform_body {
     align-items: center;
     justify-content: flex-start;
     border: 1px solid black;
-    margin: 10px;
+    margin: 50px;
     display: flex;
-    max-width: 180px;
-    min-width: 100px;
+    max-width: 90px;
+    min-width: 50px;
     background-color: #eee;
 }
 
 .legend-square {
-    max-width: 100px;
-    max-height: 100px;
-    min-width: 100px;
-    min-height: 100px;
+    max-width: 50px;
+    max-height: 50px;
+    min-width: 50px;
+    min-height: 50px;
     /* display: table-cell; */
-    padding: 20px;
+    padding: 10px;
     position: relative;
-    font-size: 1.5rem;
+    font-size: 1rem;
 
     background-image: -webkit-gradient(
         linear,
@@ -331,12 +331,12 @@ form label.gform_body {
 }
 
 .legend-detail {
-    padding: 20px;
-    min-height: 230px;
+    padding: 10px;
+    min-height: 115px;
 }
 
 .legend-text h2 {
     vertical-align: middle;
-    padding: 10px 0;
-    font-size: 18px;
+    padding: 5px 0;
+    font-size: 9px;
 }
