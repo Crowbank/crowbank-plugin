@@ -2,6 +2,7 @@
 
 /* 6: Booking Request Form */
 
+/*
 function populate_referrer( $form ) {
 	foreach ( $form['fields'] as &$field ) {
 		if ( $field->label == 'Referrer' ) {
@@ -11,6 +12,7 @@ function populate_referrer( $form ) {
 }
 
 add_filter( 'gform_pre_render_6', 'populate_referrer' );
+*/
 
 /* 23: Availabililty Calendar */
 
